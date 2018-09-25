@@ -744,7 +744,8 @@ $handler_btn_Step1_Nodes_Discover=
 		write-host "Finding cluster nodes in the environment."
 		write-host "This could take several minutes."
 		$PS_Loc = "$location\ExDC_Scripts\Core_Build_Nodes.ps1"
-		$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c) Powershell.exe -NoProfile -file $a $b $c} -ArgumentList @($PS_Loc,$location,$session_0) -Name "Core_Build_Nodes.ps1"
+		Start-Job -ScriptBlock {param($a,$b,$c) Powershell.exe -NoProfile -file $a $b $c} -ArgumentList @($PS_Loc,$location,$session_0) -Name "Core_Build_Nodes.ps1"
+		#$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c) Powershell.exe -NoProfile -file $a $b $c} -ArgumentList @($PS_Loc,$location,$session_0) -Name "Core_Build_Nodes.ps1"
 #		$strStartJob = Start-Job -FilePath ".\ExDC_Scripts\Core_Build_Nodes.ps1" -argument @($location,$session_0) -Name "Core_Build_Nodes.ps1"
 		Update-ExDCJobCount 1 15
 	}
@@ -1094,200 +1095,35 @@ $handler_btn_Step3_Execute_Click=
 #				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
 				{
 				    If ($chk_DC_Win32_Bios.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_ComputerSystem job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_bios.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if (($null -ne $strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "dc_w32_bios.ps1" -i $null -PSSession $null}
 				    If ($chk_DC_Win32_ComputerSystem.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_ComputerSystem job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_cs.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_cs.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Win32_LogicalDisk.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_LogicalDisk job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_ld.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "dc_w32_ld.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Win32_NetworkAdapter.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_NetworkAdapter job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_na.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "dc_w32_na.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Win32_NetworkAdapterConfig.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_NetworkAdapterConfiguration job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_nac.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfiguration" -JobType 0 -Location $location -JobScriptName "dc_w32_nac.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Win32_OperatingSystem.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_OperatingSystem job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_os.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_os.ps1" -i $null -PSSession $null}
 				    If ($chk_DC_Win32_PageFileUsage.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_PageFileUsage job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_pfu.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "dc_w32_pfu.ps1" -i $null -PSSession $null}
 				    If ($chk_DC_Win32_PhysicalMemory.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName= "Win32_PhysicalMemory job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_pm.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "dc_w32_pm.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Win32_Processor.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_Processor job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_w32_proc.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "dc_w32_proc.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Registry_AD.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - AD job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\DC_Reg_AD.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - AD" -JobType 0 -Location $location -JobScriptName "dc_reg_AD.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Registry_OS.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - OS job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\DC_Reg_OS.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "dc_reg_OS.ps1" -i $null -PSSession $null}
 					If ($chk_DC_Registry_Software.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - Software job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\DC_Reg_Software.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "dc_reg_Software.ps1" -i $null -PSSession $null}
 					If ($chk_DC_MicrosoftDNS_Zone.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "MicrosoftDNS_Zone job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_dns.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "MicrosoftDNS_Zone" -JobType 0 -Location $location -JobScriptName "dc_dns.ps1" -i $null -PSSession $null}
 				    If ($chk_DC_MSAD_DomainController.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "MSAD_DomainController job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_MSAD_DomainController.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "MSAD_DomainController" -JobType 0 -Location $location -JobScriptName "dc_MSAD_DomainController.ps1" -i $null -PSSession $null}
 				    If ($chk_DC_MSAD_ReplNeighbor.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "MSAD_ReplNeighbor job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\dc_MSAD_ReplNeighbor.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "MSAD_ReplNeighbor" -JobType 0 -Location $location -JobScriptName "dc_MSAD_ReplNeighbor.ps1" -i $null -PSSession $null}
 				}
 				else
 				{
@@ -1370,164 +1206,29 @@ $handler_btn_Step3_Execute_Click=
 #				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
 				{
 				    If ($chk_Ex_Win32_Bios.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_Bios job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_bios.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "exch_w32_bios.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Win32_ComputerSystem.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_ComputerSystem job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_cs.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_cs.ps1" -i $null -PSSession $null}
 					If ($chk_EX_Win32_LogicalDisk.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_LogicalDisk job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\Exch_w32_ld.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "exch_w32_ld.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Win32_NetworkAdapter.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_NetworkAdapter job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_na.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "exch_w32_na.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Win32_NetworkAdapterConfig.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_NetworkAdapterConfig job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_nac.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfig" -JobType 0 -Location $location -JobScriptName "exch_w32_nac.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Win32_OperatingSystem.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_OperatingSystem job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\Exch_w32_os.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_os.ps1" -i $null -PSSession $null}
 				    If ($chk_Ex_Win32_PageFileUsage.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_PageFileUsage job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_pfu.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "exch_w32_pfu.ps1" -i $null -PSSession $null}
 				    If ($chk_Ex_Win32_PhysicalMemory.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_PhysicalMemory job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_pm.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "exch_w32_pm.ps1" -i $null -PSSession $null}
 				    If ($chk_Ex_Win32_Processor.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Win32_Processor job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_w32_proc.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "exch_w32_proc.ps1" -i $null -PSSession $null}
 				    If ($chk_Ex_Registry_Ex.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - Exchange job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\Exch_Reg_Ex.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-		            		#fnRegisterJob -intJobPID $intStartJobPID -intJobTimeout $intWMIJobTimeoutMS -strJobName $strJobName
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - Exchange" -JobType 0 -Location $location -JobScriptName "exch_Reg_Ex.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Registry_OS.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - OS job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_reg_os.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-		            		#fnRegisterJob -intJobPID $intStartJobPID -intJobTimeout $intWMIJobTimeoutMS -strJobName $strJobName
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "exch_reg_os.ps1" -i $null -PSSession $null}
 					If ($chk_Ex_Registry_Software.checked -eq $true)
-					{
-						Limit-ExDCJob $intWMIJobs $intWMIPolling
-						$strJobName = "Registry - Software job for $server"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\exch_reg_software.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-						start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-		            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-		            		#fnRegisterJob -intJobPID $intStartJobPID -intJobTimeout $intWMIJobTimeoutMS -strJobName $strJobName
-						}
-					}
+						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "exch_reg_software.ps1" -i $null -PSSession $null}
 				}
 				else
 				{
@@ -1592,57 +1293,13 @@ $handler_btn_Step3_Execute_Click=
 #					if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
 					{
 					    If ($chk_Cluster_MSCluster_Node.checked -eq $true)
-						{
-							Limit-ExDCJob $intWMIJobs $intWMIPolling
-							$strJobName = "Cluster_MSCluster_Node job for $server"
-							write-host "-- Starting " $strJobName
-							$PS_Loc = "$location\ExDC_Scripts\Cluster_MSCluster_Node.ps1"
-							$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-							start-sleep 1 # Allow time for child job to spawn
-					        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-							{
-			            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-							}
-						}
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Node" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Node.ps1" -i $null -PSSession $null}
 					    If ($chk_Cluster_MSCluster_Network.checked -eq $true)
-						{
-							Limit-ExDCJob $intWMIJobs $intWMIPolling
-							$strJobName = "Cluster_MSCluster_Network job for $server"
-							write-host "-- Starting " $strJobName
-							$PS_Loc = "$location\ExDC_Scripts\Cluster_MSCluster_Network.ps1"
-							$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-							start-sleep 1 # Allow time for child job to spawn
-					        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-							{
-			            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-							}
-						}
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Network" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Network.ps1" -i $null -PSSession $null}
 					    If ($chk_Cluster_MSCluster_Resource.checked -eq $true)
-						{
-							Limit-ExDCJob $intWMIJobs $intWMIPolling
-							$strJobName = "Cluster_MSCluster_Resource job for $server"
-							write-host "-- Starting " $strJobName
-							$PS_Loc = "$location\ExDC_Scripts\Cluster_MSCluster_Resource.ps1"
-							$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-							start-sleep 1 # Allow time for child job to spawn
-					        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-							{
-			            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-							}
-						}
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Resource" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Resource.ps1" -i $null -PSSession $null}
 					    If ($chk_Cluster_MSCluster_ResourceGroup.checked -eq $true)
-						{
-							Limit-ExDCJob $intWMIJobs $intWMIPolling
-							$strJobName = "Cluster_MSCluster_ResourceGroup job for $server"
-							write-host "-- Starting " $strJobName
-							$PS_Loc = "$location\ExDC_Scripts\Cluster_MSCluster_ResourceGroup.ps1"
-							$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-							start-sleep 1 # Allow time for child job to spawn
-					        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-							{
-			            		$intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-							}
-						}
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_ResourceGroup" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_ResourceGroup.ps1" -i $null -PSSession $null}
 					}
 				}
 			}
@@ -1726,790 +1383,157 @@ $handler_btn_Step3_Execute_Click=
 			# First we start the jobs that query the organization instead of the Exchange server
 			#Region ExOrg Non-server Functions
 			If ($chk_Org_Get_AcceptedDomain.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-AcceptedDomain job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAcceptedDomain.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-AcceptedDomain" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAcceptedDomain.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_ActiveSyncPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-ActiveSyncMailboxPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetActiveSyncMbxPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-ActiveSyncMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncMbxPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_AddressBookPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-AddressBookPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAddressBookPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-AddressBookPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAddressBookPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_AddressList.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-AddressList job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAddressList.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-AddressList" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAddressList.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_AdPermission.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-AdPermission job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAdPermission.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-AdPermission - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdPermission.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_AdSite.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-AdSite job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAdSite.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-AdSite" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdSite.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_AdSiteLink.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-AdSiteLink job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAdSiteLink.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-AdSiteLink" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdSiteLink.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_CASMailbox.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-CASMailbox job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetCASMailbox.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-CASMailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetCASMailbox.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_ClientAccessServer.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-ClientAccessServer job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetClientAccessSvr.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-ClientAccessServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetClientAccessSvr.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_ContentFilterConfig.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-ContentFilterConfig job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetContentFilterConfig.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-ContentFilterConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetContentFilterConfig.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_DistributionGroup.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-DistributionGroup job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetDistributionGroup.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-DistributionGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDistributionGroup.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_DynamicDistributionGroup.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-DynamicDistributionGroup job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetDynamicDistributionGroup.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-DynamicDistributionGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDynamicDistributionGroup.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_EmailAddressPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-EmailAddressPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetEmailAddressPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-EmailAddressPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetEmailAddressPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_ExchangeServer.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-ExchangeServer job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetExchSvr.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-ExchangeServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetExchSvr.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_Mailbox.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-Mailbox job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbx.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-Mailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbx.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_MailboxFolderStatistics.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-MailboxFolderStatistics job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbxFolderStatistics.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-MailboxFolderStatistics - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxFolderStatistics.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_MailboxPermission.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-MailboxPermission job - Set $i"
-					write-host "-- Starting "  $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbxPermission.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-MailboxPermission - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxPermission.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_MailboxServer.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-MailboxServer job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbxSvr.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-MailboxServer - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxSvr.ps1" -i $null -PSSession $session_0}
 		    If ($chk_Org_Get_MailboxStatistics.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-MailboxStatistics job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbxStatistics.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-MailboxStatistics - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxStatistics.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_OfflineAddressBook.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-OfflineAddressBook job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOfflineAddressBook.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-OfflineAddressBook" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOfflineAddressBook.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_OrgConfig.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-OrganizationConfig job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOrgConfig.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-OrganizationConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOrgConfig.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_OutlookAnywhere.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-OutlookAnywhere job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOutlookAnywhere.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-OutlookAnywhere" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOutlookAnywhere.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_OwaMailboxPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-OwaMailboxPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOwaMailboxPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-OwaMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOwaMailboxPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_ReceiveConnector.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-ReceiveConnector job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetReceiveConnector.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-ReceiveConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetReceiveConnector.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_RemoteDomain.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-RemoteDomain job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRemoteDomain.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-RemoteDomain" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRemoteDomain.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_Rbac.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-Rbac job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRbac.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-Rbac" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRbac.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_RetentionPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-RetentionPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRetentionPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-RetentionPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRetentionPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_RetentionPolicyTag.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-RetentionPolicyTag job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRetentionPolicyTag.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-RetentionPolicyTag" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRetentionPolicyTag.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_RoutingGroupConnector.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-RoutingGroupConnector job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRoutingGroupConnector.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-RoutingGroupConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRoutingGroupConnector.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_SendConnector.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-SendConnector job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetSendConnector.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-SendConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetSendConnector.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_TransportConfig.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-TransportConfig job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetTransportConfig.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-TransportConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportConfig.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_TransportRule.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-TransportRule job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetTransportRule.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-TransportRule" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportRule.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_TransportServer.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-TransportServer job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetTransportSvr.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-TransportServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportSvr.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_UmAutoAttendant.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-UmAutoAttendant job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmAutoAttendant.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-UmAutoAttendant" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmAutoAttendant.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_UmDialPlan.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-UmDialPlan job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmDialPlan.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-UmDialPlan" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmDialPlan.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_UmIpGateway.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-UmIpGateway job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmIpGateway.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-UmIpGateway" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmIpGateway.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_UmMailbox.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-UmMailbox job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmMailbox.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Get-UmMailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailbox.ps1" -i $i -PSSession $session_0}
 			}
 
 #			If ($chk_Org_Get_UmMailboxConfiguration.checked -eq $true)
 #			{
 #				For ($i = 1;$i -lt 11;$i++)
-#				{
-#					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-#					$strJobName = "Get-UmMailboxConfiguration job - Set $i"
-#					write-host "-- Starting " $strJobName
-#					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmMailboxConfiguration.ps1"
-#					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-#			        start-sleep 1 # Allow time for child job to spawn
-#			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-#					{
-#			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-#					}
-#				}
+#				{Start-ExDCJob -server $server -job "Get-UmMailboxConfiguration - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxConfiguration.ps1" -i $i -PSSession $session_0}
 #			}
 
 #			If ($chk_Org_Get_UmMailboxPin.checked -eq $true)
 #			{
 #				For ($i = 1;$i -lt 11;$i++)
-#				{
-#					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-#					$strJobName = "Get-UmMailboxPin job - Set $i"
-#					write-host "-- Starting " $strJobName
-#					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmMailboxPin.ps1"
-#					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-#			        start-sleep 1 # Allow time for child job to spawn
-#			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-#					{
-#			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-#					}
-#				}
+#				{Start-ExDCJob -server $server -job "Get-UmMailboxPin - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxPin.ps1" -i $i -PSSession $session_0}
 #			}
 
 			If ($chk_Org_Get_UmMailboxPolicy.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-UmMailboxPolicy job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmMailboxPolicy.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-UmMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxPolicy.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_UmServer.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Get-UmServer job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetUmSvr.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Get-UmServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmSvr.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Quota.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Quota job - Set $i"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_Quota.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
+				{Start-ExDCJob -server $server -job "Quota - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_Quota.ps1" -i $i -PSSession $session_0}
 			}
-
 			If ($chk_Org_Get_AdminGroups.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Misc - Get Admin Groups job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_Misc_AdminGroups.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Misc - Get Admin Groups" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_AdminGroups.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_Fsmo.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Misc - Get FSMO Roles job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_Misc_Fsmo.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
-
+				{Start-ExDCJob -server $server -job "Misc - Get FSMO Roles" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_Fsmo.ps1" -i $null -PSSession $session_0}
 			If ($chk_Org_Get_ExchangeServerBuilds.checked -eq $true)
-			{
-				Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-				$strJobName = "Misc - Get Exchange Server Builds job"
-				write-host "-- Starting " $strJobName
-				$PS_Loc = "$location\ExDC_Scripts\ExOrg_Misc_ExchangeBuilds.ps1"
-				$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-		        start-sleep 1 # Allow time for child job to spawn
-		        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-				{
-		            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-				}
-			}
+				{Start-ExDCJob -server $server -job "Misc - Get Exchange Server Builds" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_ExchangeBuilds.ps1" -i $null -PSSession $session_0}
 			If ($Exchange2010 -eq $true)
 			{
-
-				# Exchange 2010 only cmdlet
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_ActiveSyncDevice.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-ActiveSyncDevice job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetActiveSyncDevice.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-ActiveSyncDevice" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncDevice.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_CalendarProcessing.checked -eq $true)
 				{
 					For ($i = 1;$i -lt 11;$i++)
-					{
-						Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-						$strJobName = "Get-CalendarProcessing job - Set $i"
-						write-host "-- Starting " $strJobName
-						$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetCalendarProcessing.ps1"
-						$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
-				        start-sleep 1 # Allow time for child job to spawn
-				        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-						{
-				            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-						}
-					}
+					{Start-ExDCJob -server $server -job "Get-CalendarProcessing - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetCalendarProcessing.ps1" -i $i -PSSession $session_0}
 				}
-
-				# Exchange 2010 only cmdlet
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_AvailabilityAddressSpace.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-AvailabilityAddressSpace job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAvailabilityAddressSpace.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-AvailabilityAddressSpace" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAvailabilityAddressSpace.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_ClientAccessArray.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-ClientAccessArray job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetClientAccessArray.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-ClientAccessArray" -JobType 0 -Location $location -JobScriptName "ExOrg_GetClientAccessArray.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_DatabaseAvailabilityGroup.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-DatabaseAvailabilityGroup job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetDatabaseAvailabilityGroup.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-DatabaseAvailabilityGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroup.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_DAGNetwork.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-DAGNetwork job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetDatabaseAvailabilityGroupNetwork.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-DAGNetwork" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroupNetwork.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_RPCClientAccess.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-RPCClientAccess job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetRpcClientAccess.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
-				# Exchange 2010 only cmdlet
+					{Start-ExDCJob -server $server -job "Get-RPCClientAccess" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRpcClientAccess.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
 				If ($chk_Org_Get_ThrottlingPolicy.checked -eq $true)
-				{
-					Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-					$strJobName = "Get-ThrottlingPolicy job"
-					write-host "-- Starting " $strJobName
-					$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetThrottlingPolicy.ps1"
-					$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
-			        start-sleep 1 # Allow time for child job to spawn
-			        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-					{
-			            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-					}
-				}
-
+					{Start-ExDCJob -server $server -job "Get-ThrottlingPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetThrottlingPolicy.ps1" -i $null -PSSession $session_0}
 			}
 
 			#EndRegion ExOrg Non-Server Functions
@@ -2551,209 +1575,48 @@ $handler_btn_Step3_Execute_Click=
 
 							# Get-MailboxDatabase and Get-PublicFolderDatabase can be run against E2k3
 						    If (($chk_Org_Get_MailboxDatabase.checked -eq $true) -and ($null -ne ($ServerInfo.ServerRole -match "Mailbox")))
-							{
-								Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-								$strJobName = "Get-MailboxDatabase job for $server"
-								write-host "-- Starting " $strJobName
-								$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMbxDb.ps1"
-								$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-				                start-sleep 1 # Allow time for child job to spawn
-				                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-								{
-				                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-								}
-							}
+								{Start-ExDCJob -server $server -job "Get-MailboxDatabase" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxDb.ps1" -i $null -PSSession $session_0}
 							If (($chk_Org_Get_PublicFolderDatabase.checked -eq $true) -and ($null -ne $PFServerInfo))
-							{
-								Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-								$strJobName = "Get-PublicFolderDatabase job for $server"
-								write-host "-- Starting " $strJobName
-								$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetPublicFolderDb.ps1"
-								$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-								start-sleep 1 # Allow time for child job to spawn
-				                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-								{
-				                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-								}
-				            }
-
+								{Start-ExDCJob -server $server -job "Get-PublicFolderDatabase" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolderDb.ps1" -i $null -PSSession $session_0}
 							# These cmdlets are E2k7 only
 							if ((($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $null)) -or
-							(($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $false)))
-							{
-								If ($chk_Org_Get_StorageGroup.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-StorageGroup job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetStorageGroup.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
-									start-sleep 1 # Allow time for child job to spawn
-					                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-					                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
-							}
+								(($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $false)))
+								{Start-ExDCJob -server $server -job "Get-StorageGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetStorageGroup.ps1" -i $null -PSSession $session_0}
 
 							# These cmdlets will fail against pre-E2k7 servers
 							if ($ServerInfo.IsExchange2007OrLater -eq $true)
 							{
 								If ($chk_Org_Get_ActiveSyncVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-ActiveSyncVirtualDirectoryjob for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetActiveSyncVD.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-ActiveSyncVirtualDirectoryjob" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncVD.ps1" -i $null -PSSession $session_0}
 								If ($chk_Org_Get_AutodiscoverVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-AutodiscoverVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetAutodiscoverVirtualDirectory.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-AutodiscoverVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAutodiscoverVirtualDirectory.ps1" -i $null -PSSession $session_0}
 								If ($chk_Org_Get_OABVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-OABVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOABVD.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-OABVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOABVD.ps1" -i $null -PSSession $session_0}
 								If ($chk_Org_Get_OWAVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-OWAVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetOWAVD.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-OWAVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOWAVD.ps1" -i $null -PSSession $session_0}
 								If (($chk_Org_Get_PublicFolder.checked -eq $true) -and ($null -ne $PFServerInfo))
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-PublicFolder job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetPublicFolder.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-									start-sleep 1 # Allow time for child job to spawn
-					                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-					                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-					            }
+									{Start-ExDCJob -server $server -job "Get-PublicFolder" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolder.ps1" -i $null -PSSession $session_0}
 							    If (($chk_Org_Get_PublicFolderStatistics.checked -eq $true) -and ($null -ne $PFServerInfo))
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-PublicFolderStatistics job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetPublicFolderStats.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-									start-sleep 1 # Allow time for child job to spawn
-					                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-					                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-					            }
+									{Start-ExDCJob -server $server -job "Get-PublicFolderStatistics" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolderStats.ps1" -i $null -PSSession $session_0}
 								If ($chk_Org_Get_WebServicesVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-WebServicesVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetWebServVD.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-WebServicesVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetWebServVD.ps1" -i $null -PSSession $session_0}
 							}
 
 							# These cmdlets will fail against pre-E14 servers
 							if ($ServerInfo.IsE14OrLater -eq $true)
 							{
-								# Exchange 2010 only cmdlet - E2k7 does not support -server parameter
+								# Exchange 2010+ only cmdlet - E2k7 does not support -server parameter
 								If ($chk_Org_Get_ExchangeCertificate.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-ExchangeCertificate job for server $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetExchangeCertificate.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-									start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
-
-								# Exchange 2010 only cmdlet
+									{Start-ExDCJob -server $server -job "Get-ExchangeCertificate" -JobType 0 -Location $location -JobScriptName "ExOrg_GetExchangeCertificate.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
 								If ($chk_Org_Get_ECPVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-ECPVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetEcpVirtualDirectory.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
-
-								# Exchange 2010 only cmdlet
+									{Start-ExDCJob -server $server -job "Get-ECPVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetEcpVirtualDirectory.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
 								If (($chk_Org_Get_MailboxDatabaseCopyStatus.checked -eq $true) -and (($ServerInfo.ServerRole -match "Mailbox")))
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-MailboxDatabaseCopyStatus job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetMailboxDatabaseCopyStatus.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-									start-sleep 1 # Allow time for child job to spawn
-					                if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-					                    $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-					            }
-
-								# Exchange 2010 only cmdlet
+									{Start-ExDCJob -server $server -job "Get-MailboxDatabaseCopyStatus" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMailboxDatabaseCopyStatus.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
 								If ($chk_Org_Get_PowershellVirtualDirectory.checked -eq $true)
-								{
-									Limit-ExDCJob $intExOrgJobs $intExOrgPolling
-									$strJobName = "Get-PowershellVirtualDirectory job for $server"
-									write-host "-- Starting " $strJobName
-									$PS_Loc = "$location\ExDC_Scripts\ExOrg_GetPowershellVD.ps1"
-									$strStartJob = Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$server,$location,$append,$session_0) -Name $strJobName
-							        start-sleep 1 # Allow time for child job to spawn
-							        if ($null -ne ($strStartJob.ChildJobs[0].output[0]))
-									{
-							            $intStartJobPID = [int]($strStartJob.ChildJobs[0].output[0])
-									}
-								}
+									{Start-ExDCJob -server $server -job "Get-PowershellVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPowershellVD.ps1" -i $null -PSSession $session_0}
 							}
 						}
 						else
@@ -7040,6 +5903,31 @@ Function Disable-AllFunctionsMisc
 	$chk_Org_Get_ExchangeServerBuilds.Checked = $False
 }
 
+Function Start-ExDCJob
+{
+    param(  [string]$server,`
+            [string]$Job,`              # e.g. "Win32_ComputerSystem"
+            [boolean]$JobType,`             # 0=WMI, 1=ExOrg
+            [string]$Location,`
+            [string]$JobScriptName,`    # e.g. "dc_w32_cs.ps1"
+            [int]$i,`                   # Number or $null
+            [string]$PSSession)
+
+    If ($JobType -eq 0) #WMI
+        {Limit-ExDCJob $intWMIJobs $intWMIPolling}
+    else                #ExOrg
+        {Limit-ExDCJob $intExOrgJobs $intExOrgPolling}
+    $strJobName = "$Job job for $server"
+    write-host "-- Starting " $strJobName
+    $PS_Loc = "$location\ExDC_Scripts\$JobScriptName"
+    # Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$server,$location,$append) -Name $strJobName
+    # Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$append,$session_0) -Name $strJobName
+    # Start-Job -ScriptBlock {param($a,$b,$c,$d) Powershell.exe -NoProfile -file $a $b $c $d} -ArgumentList @($PS_Loc,$location,$i,$session_0) -Name $strJobName
+    Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$location,$server,$i,$PSSession) -Name $strJobName
+    start-sleep 1 # Allow time for child job to spawn
+}
+
+
 #endregion *** Custom Functions ***
 
 # Check Powershell version
@@ -7078,12 +5966,12 @@ elseif ($powershellVersion.Version.Major -lt "6")
 # Check for presence of Powershell Profile and warn if present
 if ((test-path $PROFILE) -eq $true)
 {
-	Write-Host "WARNING: Powershell profile detected." -ForegroundColor Red
-	Write-host "WARNING: All jobs will be executed using the -NoProfile switch" -ForegroundColor Red
+	write-host "WARNING: Powershell profile detected." -ForegroundColor Red
+	write-host "WARNING: All jobs will be executed using the -NoProfile switch" -ForegroundColor Red
 }
 else
 {
-	Write-Host "No Powershell profile detected." -ForegroundColor Green
+	write-host "No Powershell profile detected." -ForegroundColor Green
 }
 
 # Check for the presence of the Exchange Snap-ins
