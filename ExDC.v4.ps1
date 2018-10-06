@@ -39,6 +39,15 @@
 	Specify INI file for ExOrg Tests configuration
 .PARAMETER NoEMS
 	Use this switch to launch the tool in Powershell (No Exchange cmdlets)
+.PARAMETER NoGUI
+	Use this switch with template files specified automatically start data collection.
+	Any additional files required (mailbox.txt, dc.txt, and/or exchange.txt) must be present.
+	The -ServerForPSSession parameter must also be specified
+	This is useful for scheduling the data collection using Task Scheduler.
+.PARAMETER NoGUIOutputFolder
+	This switch is only used when the -NoGUI switch is used.
+	When specified, the output folder will be renamed to this value after data collection completes
+	If not specified, the output folder will be rename to "output-x" where x is the Get-Time tick value
 .EXAMPLE
 	.\ExDC.v4.ps1 -JobCount_ExOrg 12
 	This results in ExDC using 12 active ExOrg jobs instead of the default of 10.
@@ -51,6 +60,10 @@
 .EXAMPLE
 	.\ExDC.v4.ps1 -INI_Server ".\Templates\Template1_INI_Server.ini"
 	This results in ExDC loading the specified template on start up.
+.EXAMPLE
+	.\ExDC.v4.ps1 -NoGUI -INI_Server ".\Templates\Template1_INI_Server.ini" -NoGUIOutputFolder "Output-Completed" -ServerForPSSession "Exchange2016.domain.com"
+	This results in ExDC running against Exchange2016.domain.com without the GUI and executing the tests indicated in the INI file
+	When completed, ExDC will rename the output folder in the ExDC location to "Output-Completed"
 .INPUTS
 	None.
 .OUTPUTS
@@ -59,9 +72,10 @@
 	NAME        :   ExDC.v4.ps1
 	AUTHOR      :   Stemy Mynhier [MSFT]
 	VERSION     :   4.0.2 build a1
-	LAST EDIT   :   Sept-2018
+	LAST EDIT   :   Oct-2018
 .LINK
 	https://gallery.technet.microsoft.com/office/Exchange-Data-Collector-ed48c3db
+	https://github.com/stemy-msft/exchange-data-collector
 #>
 
 Param(	[int]$JobCount_ExOrg = 10,`
@@ -75,7 +89,8 @@ Param(	[int]$JobCount_ExOrg = 10,`
 		[string]$INI_Cluster,`
 		[string]$INI_ExOrg,`
 		[switch]$NoEMS,`
-		[switch]$NoAdmin)
+		[switch]$NoGUI,`
+		[string]$NoGUIOutputFolder)
 
 function New-ExDCForm {
 [reflection.assembly]::loadwithpartialname("System.Windows.Forms") | Out-Null
@@ -134,7 +149,7 @@ $btn_Step1_Ex_UncheckAll = New-Object System.Windows.Forms.Button
 #endregion Step1 Exchange Tab
 
 #region Step1 Nodes Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step1_Nodes = New-Object System.Windows.Forms.TabPage
 	$bx_Nodes_List = New-Object System.Windows.Forms.GroupBox
@@ -148,7 +163,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -
 #endregion Step1 Nodes Tab
 
 #region Step1 Mailboxes Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step1_Mailboxes = New-Object System.Windows.Forms.TabPage
 	$bx_Mailboxes_List = New-Object System.Windows.Forms.GroupBox
@@ -190,7 +205,7 @@ $tab_Step3_Server_Tier2 = New-Object System.Windows.Forms.TabControl
 #endregion Step3 Server Tier2
 
 #region Step3 ExOrg Tier2
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_ExOrg = New-Object System.Windows.Forms.TabPage
 	$tab_Step3_ExOrg_Tier2 = New-Object System.Windows.Forms.TabControl
@@ -239,7 +254,7 @@ $btn_Step3_Ex_UncheckAll = New-Object System.Windows.Forms.Button
 #endregion Step3 Exchange Tab
 
 #region Step3 Cluster Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_Cluster = New-Object System.Windows.Forms.TabPage
 	$bx_Cluster_Functions = New-Object System.Windows.Forms.GroupBox
@@ -253,7 +268,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -
 #endregion Step3 Cluster Tab
 
 #region Step3 Client Access tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_ClientAccess = New-Object System.Windows.Forms.TabPage
 	$bx_ClientAccess_Functions = New-Object System.Windows.Forms.GroupBox
@@ -280,7 +295,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #endregion Step3 Client Access tab
 
 #region Step3 Global tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_Global = New-Object System.Windows.Forms.TabPage
 	$bx_Global_Functions = New-Object System.Windows.Forms.GroupBox
@@ -307,7 +322,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #endregion Step3 Global tab
 
 #region Step3 Recipient Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_Recipient = New-Object System.Windows.Forms.TabPage
 	$bx_Recipient_Functions = New-Object System.Windows.Forms.GroupBox
@@ -329,7 +344,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #endregion Step3 Recipient Tab
 
 #region Step3 Transport Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_Transport = New-Object System.Windows.Forms.TabPage
 	$bx_Transport_Functions = New-Object System.Windows.Forms.GroupBox
@@ -350,7 +365,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #endregion Step3 Transport Tab
 
 #region Step3 Unified Messaging tab
-if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)) -and ($UM -eq $true))
+if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true)) -and ($UM -eq $true))
 {
 	$tab_Step3_UM = New-Object System.Windows.Forms.TabPage
 	$bx_UM_Functions = New-Object System.Windows.Forms.GroupBox
@@ -368,7 +383,7 @@ if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)
 #endregion Step3 Unified Messaging tab
 
 #region Step3 Misc Tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$tab_Step3_Misc = New-Object System.Windows.Forms.TabPage
 	$bx_Misc_Functions = New-Object System.Windows.Forms.GroupBox
@@ -410,11 +425,11 @@ $handler_Submenu_LoadTargets=
 {
 	Import-TargetsDc
 	Import-TargetsEx
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		Import-TargetsNodes
 	}
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		Import-TargetsMailboxes
 	}
@@ -429,11 +444,11 @@ $handler_Submenu_Targets_CheckAll=
 {
 	Enable-TargetsDc
 	Enable-TargetsEx
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		Enable-TargetsNodes
 	}
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		Enable-TargetsMailbox
 	}
@@ -444,11 +459,11 @@ $handler_Submenu_Targets_UnCheckAll=
 	Disable-TargetsDc
 	Disable-TargetsEx
 
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		Disable-TargetsNodes
 	}
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		Disable-TargetsMailbox
 	}
@@ -461,12 +476,12 @@ $handler_Submenu_Tests_CheckAll=
 	# Server Functions - Exchange Servers
 	Set-AllFunctionsEx -check $true
 	# Server Functions - Cluster Nodes
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		Set-AllFunctionsCluster -Check $true
 	}
 	# Exchange Functions - All
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		Set-AllFunctionsClientAccess -Check $true
 		Set-AllFunctionsGlobal -Check $true
@@ -475,7 +490,7 @@ $handler_Submenu_Tests_CheckAll=
 		Set-AllFunctionsMisc -Check $true
 	}
 	# UM is special
-	if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)) -and ($UM -eq $true))
+	if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true)) -and ($UM -eq $true))
 	{
 		Set-AllFunctionsUm -Check $true
 	}
@@ -488,12 +503,12 @@ $handler_Submenu_Tests_UnCheckAll=
 	# Server Functions - Exchange Servers
 	Set-AllFunctionsEx -Check $false
 	# Server Functions - Cluster Nodes
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		Set-AllFunctionsCluster -Check $False
 	}
 	# Exchange Functions - All
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		Set-AllFunctionsClientAccess -Check $False
 		Set-AllFunctionsGlobal -Check $False
@@ -503,7 +518,7 @@ $handler_Submenu_Tests_UnCheckAll=
 
 	}
 	# UM is special
-	if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)) -and ($UM -eq $true))
+	if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true)) -and ($UM -eq $true))
 	{
 		Set-AllFunctionsUm -Check $False
 	}
@@ -877,7 +892,7 @@ $handler_rb_Step2_Template_1=
 	$rb_Step2_Template_4.Checked = $false
 	#Load the templates
 	#Don't load cluster if tab isn't there
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template1_INI_cluster.ini"} catch{}
 	}
@@ -896,7 +911,7 @@ $handler_rb_Step2_Template_2=
 	$rb_Step2_Template_4.Checked = $false
 	#Load the templates
 	#Don't load cluster if tab isn't there
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template2_INI_cluster.ini"} catch{}
 	}
@@ -921,7 +936,7 @@ $handler_rb_Step2_Template_3=
 	}
 	#Load the templates
 	#Don't load cluster if tab isn't there
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template3_INI_cluster.ini"} catch{}
 	}
@@ -940,7 +955,7 @@ $handler_rb_Step2_Template_4=
 	$rb_Step2_Template_3.Checked = $false
 	#Load the templates
 	#Don't load cluster if tab isn't there
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template4_INI_cluster.ini"} catch{}
 	}
@@ -956,659 +971,7 @@ $handler_rb_Step2_Template_4=
 #region "Step3 - Tests" Events
 $handler_btn_Step3_Execute_Click=
 {
-	try
-	{
-		Start-Transcript -Path (".\ExDC_Step3_Transcript_" + $append + ".txt")
-	}
-	catch [System.Management.Automation.CmdletInvocationException]
-	{
-		write-host "Transcription already started" -ForegroundColor red
-		write-host "Restarting transcription" -ForegroundColor red
-		Stop-Transcript
-		Start-Transcript -Path (".\ExDC_Step3_Transcript_" + $append + ".txt")
-	}
-	$btn_Step3_Execute.enabled = $false
-	$status_Step3.Text = "Step 3 Status: Running"
-	$EventLog = New-Object System.Diagnostics.EventLog('Application')
-	$EventLog.MachineName = "."
-	$EventLog.Source = "ExDC"
-	$EventLogText = "Starting ExDC Step 3`nDomain Controllers: $intDCTotal`nExchange Servers: $intExTotal`nMailboxes: $intMailboxTotal"
-	try{$EventLog.WriteEntry($EventLogText,"Information", 30)} catch{}
-	#send the form to the back to expose the Powershell window when starting Step 3
-	$form1.WindowState = "minimized"
-	write-host "ExDC Form minimized." -ForegroundColor Green
-
-	#Region Executing Domain Controllers Tests
-	write-host "Starting Domain Controllers..." -ForegroundColor Green
-	if (Get-DCBoxStatus = $true)
-	{
-		[array]$array_DC_Checked = $null
-		foreach ($item in $clb_Step1_DC_List.checkeditems)
-		{
-			$array_DC_Checked = $array_DC_Checked + $item.tostring()
-		}
-		if ($null -ne $array_DC_Checked)
-		{
-			foreach ($server in $array_DC_Checked)
-			{
-				$ping_reply = $null
-				$ping = New-Object system.Net.NetworkInformation.Ping
-				try
-				{
-					$ping_reply = $ping.send($server)
-				}
-				catch [system.Net.NetworkInformation.PingException]
-				{
-					write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
-				}
-				if (($ping_reply.status) -eq "Success") #This should check connections
-#				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
-				{
-				    If ($chk_DC_Win32_Bios.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "dc_w32_bios.ps1" -i $null -PSSession $null}
-				    If ($chk_DC_Win32_ComputerSystem.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_cs.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Win32_LogicalDisk.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "dc_w32_ld.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Win32_NetworkAdapter.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "dc_w32_na.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Win32_NetworkAdapterConfig.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfiguration" -JobType 0 -Location $location -JobScriptName "dc_w32_nac.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Win32_OperatingSystem.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_os.ps1" -i $null -PSSession $null}
-				    If ($chk_DC_Win32_PageFileUsage.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "dc_w32_pfu.ps1" -i $null -PSSession $null}
-				    If ($chk_DC_Win32_PhysicalMemory.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "dc_w32_pm.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Win32_Processor.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "dc_w32_proc.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Registry_AD.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - AD" -JobType 0 -Location $location -JobScriptName "dc_reg_AD.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Registry_OS.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "dc_reg_OS.ps1" -i $null -PSSession $null}
-					If ($chk_DC_Registry_Software.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "dc_reg_Software.ps1" -i $null -PSSession $null}
-					If ($chk_DC_MicrosoftDNS_Zone.checked -eq $true)
-						{Start-ExDCJob -server $server -job "MicrosoftDNS_Zone" -JobType 0 -Location $location -JobScriptName "dc_dns.ps1" -i $null -PSSession $null}
-				    If ($chk_DC_MSAD_DomainController.checked -eq $true)
-						{Start-ExDCJob -server $server -job "MSAD_DomainController" -JobType 0 -Location $location -JobScriptName "dc_MSAD_DomainController.ps1" -i $null -PSSession $null}
-				    If ($chk_DC_MSAD_ReplNeighbor.checked -eq $true)
-						{Start-ExDCJob -server $server -job "MSAD_ReplNeighbor" -JobType 0 -Location $location -JobScriptName "dc_MSAD_ReplNeighbor.ps1" -i $null -PSSession $null}
-				}
-				else
-				{
-					$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
-					if ((Test-Path $FailedPingOutput) -eq $false)
-			        {
-				      new-item $FailedPingOutput -type file -Force
-			        }
-			        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
-					write-host "---- Server $server failed Test-Connection for Domain Controller WMI functions" -ForegroundColor Red
-					"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
-					"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
-#					"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
-					$ErrorText = "ExDC " + "`n" + $server + "`n"
-					$ErrorText += "Test-Connection failed"
-					$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
-					$ErrorLog.MachineName = "."
-					$ErrorLog.Source = "ExDC"
-					Try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
-				}
-			}
-		}
-		else
-		{
-			write-host "No Domain Controllers in the list are checked"
-		}
-	}
-	else
-	{
-		write-host "---- No Domain Controller Functions selected"
-	}
-	#EndRegion Executing Domain Controllers Tests
-
-	#Region Executing Exchange Server Tests
-	write-host "Starting Exchange Servers..." -ForegroundColor Green
-	if (Get-ExBoxStatus = $true)
-	{
-		$array_Exch_Checked = $null
-		$array_EVS = $null
-		if (($null -ne $clb_Step1_Nodes_List) -and ($intNodesTotal -gt 0))
-		{
-				write-host "Servers detected in Exchange Nodes box.  Merging Cluster Nodes into the Exchange Servers list."
-				foreach ($item in $clb_Step1_Nodes_List.checkeditems)
-				{
-					$SplitItem = $item.split("~~")
-					[array]$array_Exch_Checked += $SplitItem[2]
-					[array]$array_EVS += $SplitItem[0]
-				}
-				$array_EVS = $array_EVS | select-object -Unique
-				foreach ($item in $clb_Step1_Ex_List.checkeditems)
-				{
-					if ($array_EVS -notcontains $item){$array_Exch_Checked += $item.tostring()}
-				}
-		}
-		else
-		{
-			write-host "No cluster nodes detected in Exchange Nodes box.  Using Exchange Servers check list box"
-			foreach ($item in $clb_Step1_Ex_List.checkeditems)
-			{
-				[array]$array_Exch_Checked += $item.tostring()
-			}
-		}
-		$array_Exch_Checked = $array_Exch_Checked | select-object -Unique
-
-		if ($null -ne $array_Exch_Checked)
-		{
-			foreach ($server in $array_Exch_Checked)
-			{
-				$ping_reply = $null
-				$ping = New-Object system.Net.NetworkInformation.Ping
-				try
-				{
-					$ping_reply = $ping.send($server)
-				}
-				catch [system.Net.NetworkInformation.PingException]
-				{
-					write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
-				}
-				if (($ping_reply.status) -eq "Success") #This should check connections
-#				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
-				{
-				    If ($chk_Ex_Win32_Bios.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "exch_w32_bios.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Win32_ComputerSystem.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_cs.ps1" -i $null -PSSession $null}
-					If ($chk_EX_Win32_LogicalDisk.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "exch_w32_ld.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Win32_NetworkAdapter.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "exch_w32_na.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Win32_NetworkAdapterConfig.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfig" -JobType 0 -Location $location -JobScriptName "exch_w32_nac.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Win32_OperatingSystem.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_os.ps1" -i $null -PSSession $null}
-				    If ($chk_Ex_Win32_PageFileUsage.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "exch_w32_pfu.ps1" -i $null -PSSession $null}
-				    If ($chk_Ex_Win32_PhysicalMemory.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "exch_w32_pm.ps1" -i $null -PSSession $null}
-				    If ($chk_Ex_Win32_Processor.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "exch_w32_proc.ps1" -i $null -PSSession $null}
-				    If ($chk_Ex_Registry_Ex.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - Exchange" -JobType 0 -Location $location -JobScriptName "exch_Reg_Ex.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Registry_OS.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "exch_reg_os.ps1" -i $null -PSSession $null}
-					If ($chk_Ex_Registry_Software.checked -eq $true)
-						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "exch_reg_software.ps1" -i $null -PSSession $null}
-				}
-				else
-				{
-					$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
-					if ((Test-Path $FailedPingOutput) -eq $false)
-			        {
-				      new-item $FailedPingOutput -type file -Force
-			        }
-			        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
-					write-host "---- Server $server failed Test-Connection for Exchange Server WMI functions" -ForegroundColor Red
-					"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
-					"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
-#					"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
-					$ErrorText = "ExDC " + "`n" + $server + "`n"
-					$ErrorText += "Test-Connection failed"
-					$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
-					$ErrorLog.MachineName = "."
-					$ErrorLog.Source = "ExDC"
-					try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
-				}
-			}
-		}
-		else
-		{
-			write-host "No Exchange servers in the list are checked"
-		}
-	}
-	else
-	{
-		write-host "---- No Exchange Server Functions selected"
-	}
-	#EndRegion Executing Exchange Server Tests
-
-	#Region Executing Cluster Tests
-	write-host "Starting Cluster..." -ForegroundColor Green
-	If (Get-ClusterBoxStatus = $true)
-	{
-		if ($intNodesTotal -gt 0)
-		{
-			write-host "---- Cluster nodes detected in Exchange Nodes box.  Merging Cluster Nodes into the Exchange Servers list."
-			foreach ($item in $clb_Step1_Nodes_List.checkeditems)
-			{
-				$SplitItem = $item.split("~~")
-				[array]$array_Cluster_Checked += $SplitItem[2]
-			}
-			$array_Cluster_Checked = $array_Cluster_Checked | select-object -Unique
-
-			if ($null -ne $array_Cluster_Checked)
-			{
-				foreach ($server in $array_Cluster_Checked)
-				{
-					$ping = New-Object system.Net.NetworkInformation.Ping
-					try
-					{
-						$ping_reply = $ping.send($server)
-					}
-					catch [system.Net.NetworkInformation.PingException]
-					{
-						write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
-					}
-					if (($ping_reply.status) -eq "Success") #This should check connections
-#					if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
-					{
-					    If ($chk_Cluster_MSCluster_Node.checked -eq $true)
-							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Node" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Node.ps1" -i $null -PSSession $null}
-					    If ($chk_Cluster_MSCluster_Network.checked -eq $true)
-							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Network" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Network.ps1" -i $null -PSSession $null}
-					    If ($chk_Cluster_MSCluster_Resource.checked -eq $true)
-							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Resource" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Resource.ps1" -i $null -PSSession $null}
-					    If ($chk_Cluster_MSCluster_ResourceGroup.checked -eq $true)
-							{Start-ExDCJob -server $server -job "Cluster_MSCluster_ResourceGroup" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_ResourceGroup.ps1" -i $null -PSSession $null}
-					}
-				}
-			}
-		}
-		else
-		{
-			write-host "---- No cluster nodes detected in Exchange Nodes box."
-		}
-	}
-	else
-	{
-		write-host "---- No Cluster Functions selected"
-	}
-	#EndRegion Executing Cluster Tests
-
-	#Region Executing Exchange Organization Tests
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
-	{
-		write-host "Starting Exchange Organization..." -ForegroundColor Green
-		If (Get-ExOrgBoxStatus = $true)
-		{
-			# Save checked mailboxes to file for use by jobs
-			$Mailbox_Checked_outputfile = ".\CheckedMailbox.txt"
-			if ((Test-Path $Mailbox_Checked_outputfile) -eq $true)
-			{
-				Remove-Item $Mailbox_Checked_outputfile -Force
-			}
-			write-host "-- Building the checked mailbox list..."
-			foreach ($item in $clb_Step1_Mailboxes_List.checkeditems)
-			{
-				$item.tostring() | out-file $Mailbox_Checked_outputfile -append -Force
-			}
-
-			If (Get-ExOrgMbxBoxStatus = $true)
-			{
-				# Avoid this path if we're not running mailbox tests
-				# Splitting CheckedMailboxes file 10 times
-				write-host "-- Splitting the list of checked mailboxes... "
-				$File_Location = $location + "\CheckedMailbox.txt"
-				If ((Test-Path $File_Location) -eq $false)
-				{
-					# Create empty Mailbox.txt file if not present
-					write-host "No mailboxes appear to be selected.  Mailbox tests will produce no output." -ForegroundColor Red
-					"" | Out-File $File_Location
-				}
-				$CheckedMailbox = [System.IO.File]::ReadAllLines($File_Location)
-				$CheckedMailboxCount = $CheckedMailbox.count
-				$CheckedMailboxCountSplit = [int]$CheckedMailboxCount/10
-				if ((Test-Path ".\CheckedMailbox.Set1.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set1.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set2.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set2.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set3.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set3.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set4.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set4.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set5.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set5.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set6.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set6.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set7.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set7.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set8.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set8.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set9.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set9.txt" -Force}
-				if ((Test-Path ".\CheckedMailbox.Set10.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set10.txt" -Force}
-				For ($Count = 0;$Count -lt ($CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set1.txt" -Append -Force}
-				For (;$Count -lt (2*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set2.txt" -Append -Force}
-				For (;$Count -lt (3*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set3.txt" -Append -Force}
-				For (;$Count -lt (4*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set4.txt" -Append -Force}
-				For (;$Count -lt (5*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set5.txt" -Append -Force}
-				For (;$Count -lt (6*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set6.txt" -Append -Force}
-				For (;$Count -lt (7*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set7.txt" -Append -Force}
-				For (;$Count -lt (8*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set8.txt" -Append -Force}
-				For (;$Count -lt (9*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set9.txt" -Append -Force}
-				For (;$Count -lt (10*$CheckedMailboxCountSplit);$Count++)
-					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set10.txt" -Append -Force}
-			}
-
-			# First we start the jobs that query the organization instead of the Exchange server
-			#Region ExOrg Non-server Functions
-			If ($chk_Org_Get_AcceptedDomain.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-AcceptedDomain" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAcceptedDomain.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_ActiveSyncPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-ActiveSyncMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncMbxPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_AddressBookPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-AddressBookPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAddressBookPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_AddressList.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-AddressList" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAddressList.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_AdPermission.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-AdPermission - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdPermission.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_AdSite.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-AdSite" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdSite.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_AdSiteLink.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-AdSiteLink" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAdSiteLink.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_CASMailbox.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-CASMailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetCASMailbox.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_ClientAccessServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-ClientAccessServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetClientAccessSvr.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_ContentFilterConfig.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-ContentFilterConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetContentFilterConfig.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_DistributionGroup.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-DistributionGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDistributionGroup.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_DynamicDistributionGroup.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-DynamicDistributionGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDynamicDistributionGroup.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_EmailAddressPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-EmailAddressPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetEmailAddressPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_ExchangeServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-ExchangeServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetExchSvr.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_Mailbox.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-Mailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbx.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_MailboxFolderStatistics.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-MailboxFolderStatistics - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxFolderStatistics.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_MailboxPermission.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-MailboxPermission - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxPermission.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_MailboxServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-MailboxServer - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxSvr.ps1" -i $null -PSSession $session_0}
-		    If ($chk_Org_Get_MailboxStatistics.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-MailboxStatistics - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxStatistics.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_OfflineAddressBook.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-OfflineAddressBook" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOfflineAddressBook.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_OrgConfig.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-OrganizationConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOrgConfig.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_OutlookAnywhere.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-OutlookAnywhere" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOutlookAnywhere.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_OwaMailboxPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-OwaMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOwaMailboxPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_ReceiveConnector.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-ReceiveConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetReceiveConnector.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_RemoteDomain.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-RemoteDomain" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRemoteDomain.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_Rbac.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-Rbac" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRbac.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_RetentionPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-RetentionPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRetentionPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_RetentionPolicyTag.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-RetentionPolicyTag" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRetentionPolicyTag.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_RoutingGroupConnector.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-RoutingGroupConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRoutingGroupConnector.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_SendConnector.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-SendConnector" -JobType 0 -Location $location -JobScriptName "ExOrg_GetSendConnector.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_TransportConfig.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-TransportConfig" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportConfig.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_TransportRule.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-TransportRule" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportRule.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_TransportServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-TransportServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetTransportSvr.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_UmAutoAttendant.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-UmAutoAttendant" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmAutoAttendant.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_UmDialPlan.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-UmDialPlan" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmDialPlan.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_UmIpGateway.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-UmIpGateway" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmIpGateway.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_UmMailbox.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Get-UmMailbox - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailbox.ps1" -i $i -PSSession $session_0}
-			}
-#			If ($chk_Org_Get_UmMailboxConfiguration.checked -eq $true)
-#			{
-#				For ($i = 1;$i -lt 11;$i++)
-#				{Start-ExDCJob -server $server -job "Get-UmMailboxConfiguration - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxConfiguration.ps1" -i $i -PSSession $session_0}
-#			}
-#			If ($chk_Org_Get_UmMailboxPin.checked -eq $true)
-#			{
-#				For ($i = 1;$i -lt 11;$i++)
-#				{Start-ExDCJob -server $server -job "Get-UmMailboxPin - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxPin.ps1" -i $i -PSSession $session_0}
-#			}
-			If ($chk_Org_Get_UmMailboxPolicy.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-UmMailboxPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmMailboxPolicy.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_UmServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-UmServer" -JobType 0 -Location $location -JobScriptName "ExOrg_GetUmSvr.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Quota.checked -eq $true)
-			{
-				For ($i = 1;$i -lt 11;$i++)
-				{Start-ExDCJob -server $server -job "Quota - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_Quota.ps1" -i $i -PSSession $session_0}
-			}
-			If ($chk_Org_Get_AdminGroups.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Misc - Get Admin Groups" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_AdminGroups.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_Fsmo.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Misc - Get FSMO Roles" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_Fsmo.ps1" -i $null -PSSession $session_0}
-			If ($chk_Org_Get_ExchangeServerBuilds.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Misc - Get Exchange Server Builds" -JobType 0 -Location $location -JobScriptName "ExOrg_Misc_ExchangeBuilds.ps1" -i $null -PSSession $session_0}
-			If ($Exchange2010 -eq $true)
-			{
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_ActiveSyncDevice.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-ActiveSyncDevice" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncDevice.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_CalendarProcessing.checked -eq $true)
-				{
-					For ($i = 1;$i -lt 11;$i++)
-					{Start-ExDCJob -server $server -job "Get-CalendarProcessing - Set $i" -JobType 0 -Location $location -JobScriptName "ExOrg_GetCalendarProcessing.ps1" -i $i -PSSession $session_0}
-				}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_AvailabilityAddressSpace.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-AvailabilityAddressSpace" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAvailabilityAddressSpace.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_ClientAccessArray.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-ClientAccessArray" -JobType 0 -Location $location -JobScriptName "ExOrg_GetClientAccessArray.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_DatabaseAvailabilityGroup.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-DatabaseAvailabilityGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroup.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_DAGNetwork.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-DAGNetwork" -JobType 0 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroupNetwork.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_RPCClientAccess.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-RPCClientAccess" -JobType 0 -Location $location -JobScriptName "ExOrg_GetRpcClientAccess.ps1" -i $null -PSSession $session_0}
-				# Exchange 2010+ only cmdlet
-				If ($chk_Org_Get_ThrottlingPolicy.checked -eq $true)
-					{Start-ExDCJob -server $server -job "Get-ThrottlingPolicy" -JobType 0 -Location $location -JobScriptName "ExOrg_GetThrottlingPolicy.ps1" -i $null -PSSession $session_0}
-			}
-			#EndRegion ExOrg Non-Server Functions
-
-			# Then start the ExOrg jobs that will use the $server variable
-			#Region ExOrg Server Functions
-			if (Get-ExOrgServerStatus -eq $true)
-			{
-				$array_ExOrg_Server_Checked = $null
-				foreach ($item in $clb_Step1_Ex_List.checkeditems)
-				{
-					[array]$array_ExOrg_Server_Checked += $item.tostring()
-				}
-				if ($null -ne $array_ExOrg_Server_Checked)
-				{
-					foreach ($server in $array_ExOrg_Server_Checked)
-					{
-						$ping = New-Object system.Net.NetworkInformation.Ping
-						try
-						{
-							$ping_reply = $ping.send($server)
-						}
-						catch [system.Net.NetworkInformation.PingException]
-						{
-							write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
-						}
-						if (($ping_reply.status) -eq "Success") #This should check connections
-	#					if ((Test-Connection $server -count 2 -quiet) -eq $true) #This line caused Powershell to silently exit against E2k7 servers
-						{
-							$ServerInfo = Get-ExchangeServer -identity $server
-							if ($ServerInfo.ServerRole -match "Mailbox")
-							{
-								$PFServerInfo = Get-PublicFolderDatabase -server $server
-							}
-							else
-							{
-								$PFServerInfo = $null
-							}
-
-							# Get-MailboxDatabase and Get-PublicFolderDatabase can be run against E2k3
-						    If (($chk_Org_Get_MailboxDatabase.checked -eq $true) -and ($null -ne ($ServerInfo.ServerRole -match "Mailbox")))
-								{Start-ExDCJob -server $server -job "Get-MailboxDatabase" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMbxDb.ps1" -i $null -PSSession $session_0}
-							If (($chk_Org_Get_PublicFolderDatabase.checked -eq $true) -and ($null -ne $PFServerInfo))
-								{Start-ExDCJob -server $server -job "Get-PublicFolderDatabase" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolderDb.ps1" -i $null -PSSession $session_0}
-							# These cmdlets are E2k7 only
-							if ((($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $null)) -or
-								(($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $false)))
-								{Start-ExDCJob -server $server -job "Get-StorageGroup" -JobType 0 -Location $location -JobScriptName "ExOrg_GetStorageGroup.ps1" -i $null -PSSession $session_0}
-
-							# These cmdlets will fail against pre-E2k7 servers
-							if ($ServerInfo.IsExchange2007OrLater -eq $true)
-							{
-								If ($chk_Org_Get_ActiveSyncVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-ActiveSyncVirtualDirectoryjob" -JobType 0 -Location $location -JobScriptName "ExOrg_GetActiveSyncVD.ps1" -i $null -PSSession $session_0}
-								If ($chk_Org_Get_AutodiscoverVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-AutodiscoverVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetAutodiscoverVirtualDirectory.ps1" -i $null -PSSession $session_0}
-								If ($chk_Org_Get_OABVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-OABVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOABVD.ps1" -i $null -PSSession $session_0}
-								If ($chk_Org_Get_OWAVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-OWAVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetOWAVD.ps1" -i $null -PSSession $session_0}
-								If (($chk_Org_Get_PublicFolder.checked -eq $true) -and ($null -ne $PFServerInfo))
-									{Start-ExDCJob -server $server -job "Get-PublicFolder" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolder.ps1" -i $null -PSSession $session_0}
-							    If (($chk_Org_Get_PublicFolderStatistics.checked -eq $true) -and ($null -ne $PFServerInfo))
-									{Start-ExDCJob -server $server -job "Get-PublicFolderStatistics" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPublicFolderStats.ps1" -i $null -PSSession $session_0}
-								If ($chk_Org_Get_WebServicesVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-WebServicesVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetWebServVD.ps1" -i $null -PSSession $session_0}
-							}
-
-							# These cmdlets will fail against pre-E14 servers
-							if ($ServerInfo.IsE14OrLater -eq $true)
-							{
-								# Exchange 2010+ only cmdlet - E2k7 does not support -server parameter
-								If ($chk_Org_Get_ExchangeCertificate.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-ExchangeCertificate" -JobType 0 -Location $location -JobScriptName "ExOrg_GetExchangeCertificate.ps1" -i $null -PSSession $session_0}
-								# Exchange 2010+ only cmdlet
-								If ($chk_Org_Get_ECPVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-ECPVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetEcpVirtualDirectory.ps1" -i $null -PSSession $session_0}
-								# Exchange 2010+ only cmdlet
-								If (($chk_Org_Get_MailboxDatabaseCopyStatus.checked -eq $true) -and (($ServerInfo.ServerRole -match "Mailbox")))
-									{Start-ExDCJob -server $server -job "Get-MailboxDatabaseCopyStatus" -JobType 0 -Location $location -JobScriptName "ExOrg_GetMailboxDatabaseCopyStatus.ps1" -i $null -PSSession $session_0}
-								# Exchange 2010+ only cmdlet
-								If ($chk_Org_Get_PowershellVirtualDirectory.checked -eq $true)
-									{Start-ExDCJob -server $server -job "Get-PowershellVirtualDirectory" -JobType 0 -Location $location -JobScriptName "ExOrg_GetPowershellVD.ps1" -i $null -PSSession $session_0}
-							}
-						}
-						else
-						{
-							$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
-							if ((Test-Path $FailedPingOutput) -eq $false)
-					        {
-						      new-item $FailedPingOutput -type file -Force
-					        }
-					        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
-							write-host "---- Server $server failed Test-Connection  for Exchange Organization functions" -ForegroundColor Red
-							"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
-							"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
-	#						"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
-							$ErrorText = "ExDC " + "`n" + $server + "`n"
-							$ErrorText += "Test-Connection failed"
-							$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
-							$ErrorLog.MachineName = "."
-							$ErrorLog.Source = "ExDC"
-							Try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
-						}
-					}
-				}
-				else
-				{
-					write-host "No Exchange servers in the list are checked"
-				}
-			}
-			#EndRegion ExOrg Server Functions
-		}
-		else
-		{
-			write-host "---- No Exchange Organization Functions selected"
-		}
-	}
-	#EndRegion Executing Exchange Organization Tests
-
-
-	# Delay changing status to Idle until all jobs have finished
-	Update-ExDCJobCount 1 15
-	Remove-Item	".\RunningJobs.txt"
-	# Remove Failed Jobs
-	$colJobsFailed = @(Get-Job -State Failed)
-	foreach ($objJobsFailed in $colJobsFailed)
-	{
-		if ($objJobsFailed.module -like "__DynamicModule*")
-		{
-			Remove-Job -Id $objJobsFailed.id
-		}
-		else
-		{
-            write-host "---- Failed job " $objJobsFailed.name -ForegroundColor Red
-			$FailedJobOutput = ".\FailedJobs_" + $append + ".txt"
-            if ((Test-Path $FailedJobOutput) -eq $false)
-	        {
-		      new-item $FailedJobOutput -type file -Force
-	        }
-	        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedJobOutput -Force -Append
-            "Job Name: " + $objJobsFailed.name | Out-File $FailedJobOutput -Force -Append
-	        "Job State: " + $objJobsFailed.state | Out-File $FailedJobOutput -Force	-Append
-            if ($null -ne ($objJobsFailed.childjobs[0]))
-            {
-	           $objJobsFailed.childjobs[0].output | format-list | Out-File $FailedJobOutput -Force -Append
-	           $objJobsFailed.childjobs[0].warning | format-list | Out-File $FailedJobOutput -Force -Append
-	           $objJobsFailed.childjobs[0].error | format-list | Out-File $FailedJobOutput -Force -Append
-			}
-            $ErrorText = $objJobsFailed.name + "`n"
-			$ErrorText += "Job failed"
-			$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
-			$ErrorLog.MachineName = "."
-			$ErrorLog.Source = "ExDC"
-			Try{$ErrorLog.WriteEntry($ErrorText,"Error", 500)} catch{}
-			Remove-Job -Id $objJobsFailed.id
-		}
-	}
-	write-host "Restoring ExDC Form to normal." -ForegroundColor Green
-	$form1.WindowState = "normal"
-	$btn_Step3_Execute.enabled = $true
-	$status_Step3.Text = "Step 3 Status: Idle"
-	write-host "Step 3 jobs finished"
-    Get-Job | Remove-Job -Force
-	$EventLog = New-Object System.Diagnostics.EventLog('Application')
-	$EventLog.MachineName = "."
-	$EventLog.Source = "ExDC"
-	try{$EventLog.WriteEntry("Ending ExDC Step 3","Information", 31)} catch{}
-    Stop-Transcript
+	Start-Execute
 }
 
 $handler_btn_Step3_DC_CheckAll_Click=
@@ -1700,6 +1063,7 @@ $handler_btn_Step3_Misc_UncheckAll_Click=
 {
 	Set-AllFunctionsMisc -Check $False
 }
+#endregion "Step3 - Tests" Events
 
 #region "Step4 - Reporting" Events
 $handler_btn_Step4_Assemble_Click=
@@ -2153,7 +1517,7 @@ $bx_Ex_List.Controls.Add($btn_Step1_Ex_UncheckAll)
 #EndRegion Step1 Exchange server  tab
 
 #Region Step1 Nodes tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 {
 	$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -2238,7 +1602,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -
 #EndRegion Step1 Nodes tab
 
 #Region Step1 Mailboxes tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 	$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -2528,7 +1892,7 @@ $tab_Step3_Server.Controls.Add($tab_Step3_Server_Tier2)
 #EndRegion Step3 Server - Tier 2
 
 #Region Step3 ExOrg - Tier 2
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -2993,7 +2357,7 @@ $bx_Exchange_Functions.Controls.Add($btn_Step3_Ex_UncheckAll)
 #EndRegion Step3 Exchange Servers tab
 
 #Region Step3 Cluster Nodes tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -3094,7 +2458,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -
 #EndRegion Step3 Cluster Nodes tab
 
 #Region Step3 Client Access tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -3339,7 +2703,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #EndRegion Step3 Client Access tab
 
 #Region Step3 Global tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -3596,7 +2960,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #EndRegion Step3 Global tab
 
 #Region Step3 Recipient tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -3793,7 +3157,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #EndRegion Step3 Recipient tab
 
 #Region Step3 Transport tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -3978,7 +3342,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
 #EndRegion Step3 Transport tab
 
 #Region Step3 UM tab
-if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)) -and ($UM -eq $true))
+if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true)) -and ($UM -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -4128,7 +3492,7 @@ if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)
 #EndRegion Step3 UM tab
 
 #Region Step3 Misc tab
-if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 {
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = 4
@@ -4393,7 +3757,7 @@ if (($INI_Server -ne "") -or ($INI_Cluster -ne "") -or ($INI_ExOrg -ne ""))
 	}
 
 	# Cluster INI
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
 		if (($ini_Cluster -ne "") -and ((Test-Path $ini_Cluster) -eq $true))
 		{
@@ -4408,7 +3772,7 @@ if (($INI_Server -ne "") -or ($INI_Cluster -ne "") -or ($INI_ExOrg -ne ""))
 
 	# ExOrg INI
 	write-host $ini_ExOrg
-	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true))
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
 	{
 		if (($ini_ExOrg -ne "") -and ((Test-Path $ini_ExOrg) -eq $true))
 		{
@@ -4456,12 +3820,15 @@ else
 #endregion *** Build Form ***
 
 #Save the initial state of the form
-$InitialFormWindowState = $form1.WindowState
-#Init the OnLoad event to correct the initial state of the form
-$form1.add_Load($OnLoadForm_StateCorrection)
-#Show the Form
-$form1.ShowDialog()| Out-Null
-
+	$InitialFormWindowState = $form1.WindowState
+	#Init the OnLoad event to correct the initial state of the form
+	$form1.add_Load($OnLoadForm_StateCorrection)
+If ($NoGUI -ne $true)
+{
+	#Show the Form
+	$form1.ShowDialog()| Out-Null
+}
+Start-NoGUI
 }
 #End Function
 
@@ -4505,6 +3872,729 @@ Function Watch-ExDCKnownErrors()
 	}
 }
 
+Function Start-Execute()
+{
+	try
+	{
+		Start-Transcript -Path (".\ExDC_Step3_Transcript_" + $append + ".txt")
+	}
+	catch [System.Management.Automation.CmdletInvocationException]
+	{
+		write-host "Transcription already started" -ForegroundColor red
+		write-host "Restarting transcription" -ForegroundColor red
+		Stop-Transcript
+		Start-Transcript -Path (".\ExDC_Step3_Transcript_" + $append + ".txt")
+	}
+	$btn_Step3_Execute.enabled = $false
+	$status_Step3.Text = "Step 3 Status: Running"
+	$EventLog = New-Object System.Diagnostics.EventLog('Application')
+	$EventLog.MachineName = "."
+	$EventLog.Source = "ExDC"
+	$EventLogText = "Starting ExDC Step 3`nDomain Controllers: $intDCTotal`nExchange Servers: $intExTotal`nMailboxes: $intMailboxTotal"
+	try{$EventLog.WriteEntry($EventLogText,"Information", 30)} catch{}
+	#send the form to the back to expose the Powershell window when starting Step 3
+	$form1.WindowState = "minimized"
+	write-host "ExDC Form minimized." -ForegroundColor Green
+
+	#Region Executing Domain Controllers Tests
+	write-host "Starting Domain Controllers..." -ForegroundColor Green
+	if (Get-DCBoxStatus = $true)
+	{
+		[array]$array_DC_Checked = $null
+		foreach ($item in $clb_Step1_DC_List.checkeditems)
+		{
+			$array_DC_Checked = $array_DC_Checked + $item.tostring()
+		}
+		if ($null -ne $array_DC_Checked)
+		{
+			foreach ($server in $array_DC_Checked)
+			{
+				$ping_reply = $null
+				$ping = New-Object system.Net.NetworkInformation.Ping
+				try
+				{
+					$ping_reply = $ping.send($server)
+				}
+				catch [system.Net.NetworkInformation.PingException]
+				{
+					write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
+				}
+				if (($ping_reply.status) -eq "Success") #This should check connections
+#				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
+				{
+				    If ($chk_DC_Win32_Bios.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "dc_w32_bios.ps1" -i $null -PSSession $null}
+				    If ($chk_DC_Win32_ComputerSystem.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_cs.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Win32_LogicalDisk.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "dc_w32_ld.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Win32_NetworkAdapter.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "dc_w32_na.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Win32_NetworkAdapterConfig.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfiguration" -JobType 0 -Location $location -JobScriptName "dc_w32_nac.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Win32_OperatingSystem.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "dc_w32_os.ps1" -i $null -PSSession $null}
+				    If ($chk_DC_Win32_PageFileUsage.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "dc_w32_pfu.ps1" -i $null -PSSession $null}
+				    If ($chk_DC_Win32_PhysicalMemory.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "dc_w32_pm.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Win32_Processor.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "dc_w32_proc.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Registry_AD.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - AD" -JobType 0 -Location $location -JobScriptName "dc_reg_AD.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Registry_OS.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "dc_reg_OS.ps1" -i $null -PSSession $null}
+					If ($chk_DC_Registry_Software.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "dc_reg_Software.ps1" -i $null -PSSession $null}
+					If ($chk_DC_MicrosoftDNS_Zone.checked -eq $true)
+						{Start-ExDCJob -server $server -job "MicrosoftDNS_Zone" -JobType 0 -Location $location -JobScriptName "dc_dns.ps1" -i $null -PSSession $null}
+				    If ($chk_DC_MSAD_DomainController.checked -eq $true)
+						{Start-ExDCJob -server $server -job "MSAD_DomainController" -JobType 0 -Location $location -JobScriptName "dc_MSAD_DomainController.ps1" -i $null -PSSession $null}
+				    If ($chk_DC_MSAD_ReplNeighbor.checked -eq $true)
+						{Start-ExDCJob -server $server -job "MSAD_ReplNeighbor" -JobType 0 -Location $location -JobScriptName "dc_MSAD_ReplNeighbor.ps1" -i $null -PSSession $null}
+				}
+				else
+				{
+					$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
+					if ((Test-Path $FailedPingOutput) -eq $false)
+			        {
+				      new-item $FailedPingOutput -type file -Force
+			        }
+			        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
+					write-host "---- Server $server failed Test-Connection for Domain Controller WMI functions" -ForegroundColor Red
+					"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
+					"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
+#					"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
+					$ErrorText = "ExDC " + "`n" + $server + "`n"
+					$ErrorText += "Test-Connection failed"
+					$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
+					$ErrorLog.MachineName = "."
+					$ErrorLog.Source = "ExDC"
+					Try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
+				}
+			}
+		}
+		else
+		{
+			write-host "No Domain Controllers in the list are checked"
+		}
+	}
+	else
+	{
+		write-host "---- No Domain Controller Functions selected"
+	}
+	#EndRegion Executing Domain Controllers Tests
+
+	#Region Executing Exchange Server Tests
+	write-host "Starting Exchange Servers..." -ForegroundColor Green
+	if (Get-ExBoxStatus = $true)
+	{
+		$array_Exch_Checked = $null
+		$array_EVS = $null
+		if (($null -ne $clb_Step1_Nodes_List) -and ($intNodesTotal -gt 0))
+		{
+				write-host "Servers detected in Exchange Nodes box.  Merging Cluster Nodes into the Exchange Servers list."
+				foreach ($item in $clb_Step1_Nodes_List.checkeditems)
+				{
+					$SplitItem = $item.split("~~")
+					[array]$array_Exch_Checked += $SplitItem[2]
+					[array]$array_EVS += $SplitItem[0]
+				}
+				$array_EVS = $array_EVS | select-object -Unique
+				foreach ($item in $clb_Step1_Ex_List.checkeditems)
+				{
+					if ($array_EVS -notcontains $item){$array_Exch_Checked += $item.tostring()}
+				}
+		}
+		else
+		{
+			write-host "No cluster nodes detected in Exchange Nodes box.  Using Exchange Servers check list box"
+			foreach ($item in $clb_Step1_Ex_List.checkeditems)
+			{
+				[array]$array_Exch_Checked += $item.tostring()
+			}
+		}
+		$array_Exch_Checked = $array_Exch_Checked | select-object -Unique
+
+		if ($null -ne $array_Exch_Checked)
+		{
+			foreach ($server in $array_Exch_Checked)
+			{
+				$ping_reply = $null
+				$ping = New-Object system.Net.NetworkInformation.Ping
+				try
+				{
+					$ping_reply = $ping.send($server)
+				}
+				catch [system.Net.NetworkInformation.PingException]
+				{
+					write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
+				}
+				if (($ping_reply.status) -eq "Success") #This should check connections
+#				if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
+				{
+				    If ($chk_Ex_Win32_Bios.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_BIOS" -JobType 0 -Location $location -JobScriptName "exch_w32_bios.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Win32_ComputerSystem.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_ComputerSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_cs.ps1" -i $null -PSSession $null}
+					If ($chk_EX_Win32_LogicalDisk.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_LogicalDisk" -JobType 0 -Location $location -JobScriptName "exch_w32_ld.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Win32_NetworkAdapter.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapter" -JobType 0 -Location $location -JobScriptName "exch_w32_na.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Win32_NetworkAdapterConfig.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_NetworkAdapterConfig" -JobType 0 -Location $location -JobScriptName "exch_w32_nac.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Win32_OperatingSystem.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_OperatingSystem" -JobType 0 -Location $location -JobScriptName "exch_w32_os.ps1" -i $null -PSSession $null}
+				    If ($chk_Ex_Win32_PageFileUsage.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_PageFileUsage" -JobType 0 -Location $location -JobScriptName "exch_w32_pfu.ps1" -i $null -PSSession $null}
+				    If ($chk_Ex_Win32_PhysicalMemory.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_PhysicalMemory" -JobType 0 -Location $location -JobScriptName "exch_w32_pm.ps1" -i $null -PSSession $null}
+				    If ($chk_Ex_Win32_Processor.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Win32_Processor" -JobType 0 -Location $location -JobScriptName "exch_w32_proc.ps1" -i $null -PSSession $null}
+				    If ($chk_Ex_Registry_Ex.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - Exchange" -JobType 0 -Location $location -JobScriptName "exch_Reg_Ex.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Registry_OS.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - OS" -JobType 0 -Location $location -JobScriptName "exch_reg_os.ps1" -i $null -PSSession $null}
+					If ($chk_Ex_Registry_Software.checked -eq $true)
+						{Start-ExDCJob -server $server -job "Registry - Software" -JobType 0 -Location $location -JobScriptName "exch_reg_software.ps1" -i $null -PSSession $null}
+				}
+				else
+				{
+					$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
+					if ((Test-Path $FailedPingOutput) -eq $false)
+			        {
+				      new-item $FailedPingOutput -type file -Force
+			        }
+			        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
+					write-host "---- Server $server failed Test-Connection for Exchange Server WMI functions" -ForegroundColor Red
+					"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
+					"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
+#					"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
+					$ErrorText = "ExDC " + "`n" + $server + "`n"
+					$ErrorText += "Test-Connection failed"
+					$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
+					$ErrorLog.MachineName = "."
+					$ErrorLog.Source = "ExDC"
+					try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
+				}
+			}
+		}
+		else
+		{
+			write-host "No Exchange servers in the list are checked"
+		}
+	}
+	else
+	{
+		write-host "---- No Exchange Server Functions selected"
+	}
+	#EndRegion Executing Exchange Server Tests
+
+	#Region Executing Cluster Tests
+	write-host "Starting Cluster..." -ForegroundColor Green
+	If (Get-ClusterBoxStatus = $true)
+	{
+		if ($intNodesTotal -gt 0)
+		{
+			write-host "---- Cluster nodes detected in Exchange Nodes box.  Merging Cluster Nodes into the Exchange Servers list."
+			foreach ($item in $clb_Step1_Nodes_List.checkeditems)
+			{
+				$SplitItem = $item.split("~~")
+				[array]$array_Cluster_Checked += $SplitItem[2]
+			}
+			$array_Cluster_Checked = $array_Cluster_Checked | select-object -Unique
+
+			if ($null -ne $array_Cluster_Checked)
+			{
+				foreach ($server in $array_Cluster_Checked)
+				{
+					$ping = New-Object system.Net.NetworkInformation.Ping
+					try
+					{
+						$ping_reply = $ping.send($server)
+					}
+					catch [system.Net.NetworkInformation.PingException]
+					{
+						write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
+					}
+					if (($ping_reply.status) -eq "Success") #This should check connections
+#					if ((Test-Connection $server -count 2 -quiet) -eq $true) #This should check connections
+					{
+					    If ($chk_Cluster_MSCluster_Node.checked -eq $true)
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Node" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Node.ps1" -i $null -PSSession $null}
+					    If ($chk_Cluster_MSCluster_Network.checked -eq $true)
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Network" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Network.ps1" -i $null -PSSession $null}
+					    If ($chk_Cluster_MSCluster_Resource.checked -eq $true)
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_Resource" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_Resource.ps1" -i $null -PSSession $null}
+					    If ($chk_Cluster_MSCluster_ResourceGroup.checked -eq $true)
+							{Start-ExDCJob -server $server -job "Cluster_MSCluster_ResourceGroup" -JobType 0 -Location $location -JobScriptName "Cluster_MSCluster_ResourceGroup.ps1" -i $null -PSSession $null}
+					}
+				}
+			}
+		}
+		else
+		{
+			write-host "---- No cluster nodes detected in Exchange Nodes box."
+		}
+	}
+	else
+	{
+		write-host "---- No Cluster Functions selected"
+	}
+	#EndRegion Executing Cluster Tests
+
+	#Region Executing Exchange Organization Tests
+	if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) -or ($NoGUI -eq $true))
+	{
+		write-host "Starting Exchange Organization..." -ForegroundColor Green
+		If (Get-ExOrgBoxStatus = $true)
+		{
+			# Save checked mailboxes to file for use by jobs
+			$Mailbox_Checked_outputfile = ".\CheckedMailbox.txt"
+			if ((Test-Path $Mailbox_Checked_outputfile) -eq $true)
+			{
+				Remove-Item $Mailbox_Checked_outputfile -Force
+			}
+			write-host "-- Building the checked mailbox list..."
+			foreach ($item in $clb_Step1_Mailboxes_List.checkeditems)
+			{
+				$item.tostring() | out-file $Mailbox_Checked_outputfile -append -Force
+			}
+
+			If (Get-ExOrgMbxBoxStatus = $true)
+			{
+				# Avoid this path if we're not running mailbox tests
+				# Splitting CheckedMailboxes file 10 times
+				write-host "-- Splitting the list of checked mailboxes... "
+				$File_Location = $location + "\CheckedMailbox.txt"
+				If ((Test-Path $File_Location) -eq $false)
+				{
+					# Create empty Mailbox.txt file if not present
+					write-host "No mailboxes appear to be selected.  Mailbox tests will produce no output." -ForegroundColor Red
+					"" | Out-File $File_Location
+				}
+				$CheckedMailbox = [System.IO.File]::ReadAllLines($File_Location)
+				$CheckedMailboxCount = $CheckedMailbox.count
+				$CheckedMailboxCountSplit = [int]$CheckedMailboxCount/10
+				if ((Test-Path ".\CheckedMailbox.Set1.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set1.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set2.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set2.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set3.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set3.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set4.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set4.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set5.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set5.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set6.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set6.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set7.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set7.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set8.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set8.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set9.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set9.txt" -Force}
+				if ((Test-Path ".\CheckedMailbox.Set10.txt") -eq $true) {Remove-Item ".\CheckedMailbox.Set10.txt" -Force}
+				For ($Count = 0;$Count -lt ($CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set1.txt" -Append -Force}
+				For (;$Count -lt (2*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set2.txt" -Append -Force}
+				For (;$Count -lt (3*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set3.txt" -Append -Force}
+				For (;$Count -lt (4*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set4.txt" -Append -Force}
+				For (;$Count -lt (5*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set5.txt" -Append -Force}
+				For (;$Count -lt (6*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set6.txt" -Append -Force}
+				For (;$Count -lt (7*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set7.txt" -Append -Force}
+				For (;$Count -lt (8*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set8.txt" -Append -Force}
+				For (;$Count -lt (9*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set9.txt" -Append -Force}
+				For (;$Count -lt (10*$CheckedMailboxCountSplit);$Count++)
+					{$CheckedMailbox[$Count] | Out-File ".\CheckedMailbox.Set10.txt" -Append -Force}
+			}
+
+			# First we start the jobs that query the organization instead of the Exchange server
+			#Region ExOrg Non-server Functions
+			If ($chk_Org_Get_AcceptedDomain.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-AcceptedDomain" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAcceptedDomain.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_ActiveSyncPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-ActiveSyncMailboxPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetActiveSyncMbxPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_AddressBookPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-AddressBookPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAddressBookPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_AddressList.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-AddressList" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAddressList.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_AdPermission.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-AdPermission - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAdPermission.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_AdSite.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-AdSite" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAdSite.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_AdSiteLink.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-AdSiteLink" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAdSiteLink.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_CASMailbox.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-CASMailbox - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetCASMailbox.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_ClientAccessServer.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-ClientAccessServer" -JobType 1 -Location $location -JobScriptName "ExOrg_GetClientAccessSvr.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_ContentFilterConfig.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-ContentFilterConfig" -JobType 1 -Location $location -JobScriptName "ExOrg_GetContentFilterConfig.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_DistributionGroup.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-DistributionGroup" -JobType 1 -Location $location -JobScriptName "ExOrg_GetDistributionGroup.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_DynamicDistributionGroup.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-DynamicDistributionGroup" -JobType 1 -Location $location -JobScriptName "ExOrg_GetDynamicDistributionGroup.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_EmailAddressPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-EmailAddressPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetEmailAddressPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_ExchangeServer.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-ExchangeServer" -JobType 1 -Location $location -JobScriptName "ExOrg_GetExchSvr.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_Mailbox.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-Mailbox - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbx.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_MailboxFolderStatistics.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-MailboxFolderStatistics - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxFolderStatistics.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_MailboxPermission.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-MailboxPermission - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxPermission.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_MailboxServer.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-MailboxServer - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxSvr.ps1" -i $null -PSSession $session_0}
+		    If ($chk_Org_Get_MailboxStatistics.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-MailboxStatistics - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxStatistics.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_OfflineAddressBook.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-OfflineAddressBook" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOfflineAddressBook.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_OrgConfig.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-OrganizationConfig" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOrgConfig.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_OutlookAnywhere.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-OutlookAnywhere" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOutlookAnywhere.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_OwaMailboxPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-OwaMailboxPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOwaMailboxPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_ReceiveConnector.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-ReceiveConnector" -JobType 1 -Location $location -JobScriptName "ExOrg_GetReceiveConnector.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_RemoteDomain.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-RemoteDomain" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRemoteDomain.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_Rbac.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-Rbac" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRbac.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_RetentionPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-RetentionPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRetentionPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_RetentionPolicyTag.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-RetentionPolicyTag" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRetentionPolicyTag.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_RoutingGroupConnector.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-RoutingGroupConnector" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRoutingGroupConnector.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_SendConnector.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-SendConnector" -JobType 1 -Location $location -JobScriptName "ExOrg_GetSendConnector.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_TransportConfig.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-TransportConfig" -JobType 1 -Location $location -JobScriptName "ExOrg_GetTransportConfig.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_TransportRule.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-TransportRule" -JobType 1 -Location $location -JobScriptName "ExOrg_GetTransportRule.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_TransportServer.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-TransportServer" -JobType 1 -Location $location -JobScriptName "ExOrg_GetTransportSvr.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_UmAutoAttendant.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-UmAutoAttendant" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmAutoAttendant.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_UmDialPlan.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-UmDialPlan" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmDialPlan.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_UmIpGateway.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-UmIpGateway" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmIpGateway.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_UmMailbox.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-UmMailbox - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmMailbox.ps1" -i $i -PSSession $session_0}
+			}
+#			If ($chk_Org_Get_UmMailboxConfiguration.checked -eq $true)
+#			{
+#				For ($i = 1;$i -lt 11;$i++)
+#				{Start-ExDCJob -server $server -job "Get-UmMailboxConfiguration - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmMailboxConfiguration.ps1" -i $i -PSSession $session_0}
+#			}
+#			If ($chk_Org_Get_UmMailboxPin.checked -eq $true)
+#			{
+#				For ($i = 1;$i -lt 11;$i++)
+#				{Start-ExDCJob -server $server -job "Get-UmMailboxPin - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmMailboxPin.ps1" -i $i -PSSession $session_0}
+#			}
+			If ($chk_Org_Get_UmMailboxPolicy.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-UmMailboxPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmMailboxPolicy.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_UmServer.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Get-UmServer" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUmSvr.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Quota.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Quota - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_Quota.ps1" -i $i -PSSession $session_0}
+			}
+			If ($chk_Org_Get_AdminGroups.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Misc - Get Admin Groups" -JobType 1 -Location $location -JobScriptName "ExOrg_Misc_AdminGroups.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_Fsmo.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Misc - Get FSMO Roles" -JobType 1 -Location $location -JobScriptName "ExOrg_Misc_Fsmo.ps1" -i $null -PSSession $session_0}
+			If ($chk_Org_Get_ExchangeServerBuilds.checked -eq $true)
+				{Start-ExDCJob -server $server -job "Misc - Get Exchange Server Builds" -JobType 1 -Location $location -JobScriptName "ExOrg_Misc_ExchangeBuilds.ps1" -i $null -PSSession $session_0}
+			If (($Exchange2010 -eq $true) -or ($Exchange2013 -eq $true) -or ($Exchange2016 -eq $true)) 
+			{
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_ActiveSyncDevice.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-ActiveSyncDevice" -JobType 1 -Location $location -JobScriptName "ExOrg_GetActiveSyncDevice.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_CalendarProcessing.checked -eq $true)
+				{
+					For ($i = 1;$i -lt 11;$i++)
+					{Start-ExDCJob -server $server -job "Get-CalendarProcessing - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetCalendarProcessing.ps1" -i $i -PSSession $session_0}
+				}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_AvailabilityAddressSpace.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-AvailabilityAddressSpace" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAvailabilityAddressSpace.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_ClientAccessArray.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-ClientAccessArray" -JobType 1 -Location $location -JobScriptName "ExOrg_GetClientAccessArray.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_DatabaseAvailabilityGroup.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-DatabaseAvailabilityGroup" -JobType 1 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroup.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_DAGNetwork.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-DAGNetwork" -JobType 1 -Location $location -JobScriptName "ExOrg_GetDatabaseAvailabilityGroupNetwork.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_RPCClientAccess.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-RPCClientAccess" -JobType 1 -Location $location -JobScriptName "ExOrg_GetRpcClientAccess.ps1" -i $null -PSSession $session_0}
+				# Exchange 2010+ only cmdlet
+				If ($chk_Org_Get_ThrottlingPolicy.checked -eq $true)
+					{Start-ExDCJob -server $server -job "Get-ThrottlingPolicy" -JobType 1 -Location $location -JobScriptName "ExOrg_GetThrottlingPolicy.ps1" -i $null -PSSession $session_0}
+			}
+			#EndRegion ExOrg Non-Server Functions
+
+			# Then start the ExOrg jobs that will use the $server variable
+			#Region ExOrg Server Functions
+			if (Get-ExOrgServerStatus -eq $true)
+			{
+				$array_ExOrg_Server_Checked = $null
+				foreach ($item in $clb_Step1_Ex_List.checkeditems)
+				{
+					[array]$array_ExOrg_Server_Checked += $item.tostring()
+				}
+				if ($null -ne $array_ExOrg_Server_Checked)
+				{
+					foreach ($server in $array_ExOrg_Server_Checked)
+					{
+						$ping = New-Object system.Net.NetworkInformation.Ping
+						try
+						{
+							$ping_reply = $ping.send($server)
+						}
+						catch [system.Net.NetworkInformation.PingException]
+						{
+							write-host "Exception occured during Ping request to server: $server" -ForegroundColor Red
+						}
+						if (($ping_reply.status) -eq "Success") #This should check connections
+	#					if ((Test-Connection $server -count 2 -quiet) -eq $true) #This line caused Powershell to silently exit against E2k7 servers
+						{
+							$ServerInfo = Get-ExchangeServer -identity $server
+							if ($ServerInfo.ServerRole -match "Mailbox")
+							{
+								$PFServerInfo = Get-PublicFolderDatabase -server $server
+							}
+							else
+							{
+								$PFServerInfo = $null
+							}
+
+							# Get-MailboxDatabase and Get-PublicFolderDatabase can be run against E2k3
+						    If (($chk_Org_Get_MailboxDatabase.checked -eq $true) -and ($null -ne ($ServerInfo.ServerRole -match "Mailbox")))
+								{Start-ExDCJob -server $server -job "Get-MailboxDatabase" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxDb.ps1" -i $null -PSSession $session_0}
+							If (($chk_Org_Get_PublicFolderDatabase.checked -eq $true) -and ($null -ne $PFServerInfo))
+								{Start-ExDCJob -server $server -job "Get-PublicFolderDatabase" -JobType 1 -Location $location -JobScriptName "ExOrg_GetPublicFolderDb.ps1" -i $null -PSSession $session_0}
+							# These cmdlets are E2k7 only
+							if ((($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $null)) -or
+								(($ServerInfo.IsExchange2007OrLater -eq $true) -and ($ServerInfo.IsE14OrLater -eq $false)))
+								{Start-ExDCJob -server $server -job "Get-StorageGroup" -JobType 1 -Location $location -JobScriptName "ExOrg_GetStorageGroup.ps1" -i $null -PSSession $session_0}
+
+							# These cmdlets will fail against pre-E2k7 servers
+							if ($ServerInfo.IsExchange2007OrLater -eq $true)
+							{
+								If ($chk_Org_Get_ActiveSyncVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-ActiveSyncVirtualDirectoryjob" -JobType 1 -Location $location -JobScriptName "ExOrg_GetActiveSyncVD.ps1" -i $null -PSSession $session_0}
+								If ($chk_Org_Get_AutodiscoverVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-AutodiscoverVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetAutodiscoverVirtualDirectory.ps1" -i $null -PSSession $session_0}
+								If ($chk_Org_Get_OABVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-OABVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOABVD.ps1" -i $null -PSSession $session_0}
+								If ($chk_Org_Get_OWAVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-OWAVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetOWAVD.ps1" -i $null -PSSession $session_0}
+								If (($chk_Org_Get_PublicFolder.checked -eq $true) -and ($null -ne $PFServerInfo))
+									{Start-ExDCJob -server $server -job "Get-PublicFolder" -JobType 1 -Location $location -JobScriptName "ExOrg_GetPublicFolder.ps1" -i $null -PSSession $session_0}
+							    If (($chk_Org_Get_PublicFolderStatistics.checked -eq $true) -and ($null -ne $PFServerInfo))
+									{Start-ExDCJob -server $server -job "Get-PublicFolderStatistics" -JobType 1 -Location $location -JobScriptName "ExOrg_GetPublicFolderStats.ps1" -i $null -PSSession $session_0}
+								If ($chk_Org_Get_WebServicesVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-WebServicesVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetWebServVD.ps1" -i $null -PSSession $session_0}
+							}
+
+							# These cmdlets will fail against pre-E14 servers
+							if ($ServerInfo.IsE14OrLater -eq $true)
+							{
+								# Exchange 2010+ only cmdlet - E2k7 does not support -server parameter
+								If ($chk_Org_Get_ExchangeCertificate.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-ExchangeCertificate" -JobType 1 -Location $location -JobScriptName "ExOrg_GetExchangeCertificate.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
+								If ($chk_Org_Get_ECPVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-ECPVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetEcpVirtualDirectory.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
+								If (($chk_Org_Get_MailboxDatabaseCopyStatus.checked -eq $true) -and (($ServerInfo.ServerRole -match "Mailbox")))
+									{Start-ExDCJob -server $server -job "Get-MailboxDatabaseCopyStatus" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMailboxDatabaseCopyStatus.ps1" -i $null -PSSession $session_0}
+								# Exchange 2010+ only cmdlet
+								If ($chk_Org_Get_PowershellVirtualDirectory.checked -eq $true)
+									{Start-ExDCJob -server $server -job "Get-PowershellVirtualDirectory" -JobType 1 -Location $location -JobScriptName "ExOrg_GetPowershellVD.ps1" -i $null -PSSession $session_0}
+							}
+						}
+						else
+						{
+							$FailedPingOutput = ".\FailedPing_" + $append + ".txt"
+							if ((Test-Path $FailedPingOutput) -eq $false)
+					        {
+						      new-item $FailedPingOutput -type file -Force
+					        }
+					        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedPingOutput -Force -Append
+							write-host "---- Server $server failed Test-Connection  for Exchange Organization functions" -ForegroundColor Red
+							"Server: " + $server  | Out-File $FailedPingOutput -Force -Append
+							"Failure: Ping reply to $server was not successful`n`n" | Out-File $FailedPingOutput -Force -Append
+	#						"Failure: Test-Connection $server -count 2 -quiet`n`n" | Out-File $FailedPingOutput -Force -Append
+							$ErrorText = "ExDC " + "`n" + $server + "`n"
+							$ErrorText += "Test-Connection failed"
+							$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
+							$ErrorLog.MachineName = "."
+							$ErrorLog.Source = "ExDC"
+							Try{$ErrorLog.WriteEntry($ErrorText,"Error", 400)} catch{}
+						}
+					}
+				}
+				else
+				{
+					write-host "No Exchange servers in the list are checked"
+				}
+			}
+			#EndRegion ExOrg Server Functions
+		}
+		else
+		{
+			write-host "---- No Exchange Organization Functions selected"
+		}
+	}
+	#EndRegion Executing Exchange Organization Tests
+
+
+	# Delay changing status to Idle until all jobs have finished
+	Update-ExDCJobCount 1 15
+	Remove-Item	".\RunningJobs.txt"
+	# Remove Failed Jobs
+	$colJobsFailed = @(Get-Job -State Failed)
+	foreach ($objJobsFailed in $colJobsFailed)
+	{
+		if ($objJobsFailed.module -like "__DynamicModule*")
+		{
+			Remove-Job -Id $objJobsFailed.id
+		}
+		else
+		{
+            write-host "---- Failed job " $objJobsFailed.name -ForegroundColor Red
+			$FailedJobOutput = ".\FailedJobs_" + $append + ".txt"
+            if ((Test-Path $FailedJobOutput) -eq $false)
+	        {
+		      new-item $FailedJobOutput -type file -Force
+	        }
+	        "* * * * * * * * * * * * * * * * * * * *"  | Out-File $FailedJobOutput -Force -Append
+            "Job Name: " + $objJobsFailed.name | Out-File $FailedJobOutput -Force -Append
+	        "Job State: " + $objJobsFailed.state | Out-File $FailedJobOutput -Force	-Append
+            if ($null -ne ($objJobsFailed.childjobs[0]))
+            {
+	           $objJobsFailed.childjobs[0].output | format-list | Out-File $FailedJobOutput -Force -Append
+	           $objJobsFailed.childjobs[0].warning | format-list | Out-File $FailedJobOutput -Force -Append
+	           $objJobsFailed.childjobs[0].error | format-list | Out-File $FailedJobOutput -Force -Append
+			}
+            $ErrorText = $objJobsFailed.name + "`n"
+			$ErrorText += "Job failed"
+			$ErrorLog = New-Object System.Diagnostics.EventLog('Application')
+			$ErrorLog.MachineName = "."
+			$ErrorLog.Source = "ExDC"
+			Try{$ErrorLog.WriteEntry($ErrorText,"Error", 500)} catch{}
+			Remove-Job -Id $objJobsFailed.id
+		}
+	}
+	write-host "Restoring ExDC Form to normal." -ForegroundColor Green
+	$form1.WindowState = "normal"
+	$btn_Step3_Execute.enabled = $true
+	$status_Step3.Text = "Step 3 Status: Idle"
+	write-host "Step 3 jobs finished"
+    Get-Job | Remove-Job -Force
+	$EventLog = New-Object System.Diagnostics.EventLog('Application')
+	$EventLog.MachineName = "."
+	$EventLog.Source = "ExDC"
+	try{$EventLog.WriteEntry("Ending ExDC Step 3","Information", 31)} catch{}
+    Stop-Transcript
+}
+
+Function Start-NoGUI()
+{
+	#Write-Host "Entered Start-NoGUI function"
+	# If -NoGUI is set, then we're going to handle everything automatically
+	If ($NoGUI -eq $true)
+	{
+		# Populate the targets
+		Import-TargetsDc | Out-Null
+		Import-TargetsEx | Out-Null
+		Import-TargetsNodes | Out-Null
+		If ($INI_ExOrg -ne "")
+		{
+			$File_Location = $location + "\mailbox.txt"
+		    if ((Test-Path $File_Location) -eq $true)
+			{
+				$EventLog = New-Object System.Diagnostics.EventLog('Application')
+				$EventLog.MachineName = "."
+				$EventLog.Source = "ExDC"
+				try{$EventLog.WriteEntry("Starting ExDC Step 1 - Populate","Information", 10)} catch{}
+			    $array_Mailboxes = @(([System.IO.File]::ReadAllLines($File_Location)) | sort-object -Unique)
+				$global:intMailboxTotal = 0
+			    $clb_Step1_Mailboxes_List.items.clear()
+				foreach ($member_Mailbox in $array_Mailboxes | where-object {$_ -ne ""})
+			    {
+			        $clb_Step1_Mailboxes_List.items.add($member_Mailbox) | Out-Null
+					$global:intMailboxTotal++
+			    }
+				For ($i=0;$i -le ($intMailboxTotal - 1);$i++)
+				{
+					$clb_Step1_Mailboxes_List.SetItemChecked($i,$true)
+				}
+				$EventLog = New-Object System.Diagnostics.EventLog('Application')
+				$EventLog.MachineName = "."
+				$EventLog.Source = "ExDC"
+				try{$EventLog.WriteEntry("Ending ExDC Step 1 - Populate","Information", 11)} catch{}
+				#$txt_MailboxesTotal.Text = "Mailbox count = " + $intMailboxTotal
+				#$txt_MailboxesTotal.visible = $true
+			    #$status_Step1.Text = "Step 2 Status: Idle"
+			}
+			else
+			{
+				write-host	"The file mailbox.txt is not present.  Run Discover to create the file."
+				#$status_Step1.Text = "Step 1 Status: Failed - mailbox.txt file not found.  Run Discover to create the file."
+			}
+		}
+		# Click the Execute Button
+		Start-Execute
+		
+		# Rename the folder
+		If ($NoGUIOutputFolder -ne "")
+		{
+			$Newfolder = $NoGUIOutputFolder
+			Rename-Item $location"\output" $location"\"$NoGUIOutputFolderOutputFolder
+		}
+		else
+		{
+			$ticks = (Get-Date).ticks
+			$NewFolder = "output-$ticks"
+			Rename-Item $location"\output" $location"\"$NewFolder
+		}
+	}
+	exit
+}
+
+
+
 Function Disable-AllTargetsButtons()
 {
     $btn_Step1_DC_Discover.enabled = $false
@@ -4539,9 +4629,12 @@ Function Enable-AllTargetsButtons()
 
 Function Limit-ExDCJob
 {
-	Param([int]$JobThrottleMaxJobs,`
-		[int]$JobThrottlePolling)
+	Param(	[int]$JobThrottleMaxJobs,`
+			[int]$JobThrottlePolling,`
+			[string]$PsSession
+			)
 
+	# This function is only called during Start-ExDCJob to prevent jobs from starting prematurely
 	# Remove Failed Jobs
 	$colJobsFailed = @(Get-Job -State Failed)
 	foreach ($objJobsFailed in $colJobsFailed)
@@ -4577,6 +4670,15 @@ Function Limit-ExDCJob
 		}
 	}
 
+	# Remove Completed Jobs
+	$colJobsCompleted = @((Get-Job -State completed) | where-object {$null -ne $_.childjobs})
+	foreach ($objJobsCompleted in $colJobsCompleted)
+	{
+		Remove-Job -Id $objJobsCompleted.id
+		write-host "---- Finished job " $objJobsCompleted.name -ForegroundColor Green
+	}
+
+	# Get Running Jobs
     $colJobsRunning = @((Get-Job -State Running) | where-object {$_.Module -ne "__DynamicModule*"})
 	if ((Test-Path ".\RunningJobs.txt") -eq $false)
 	{
@@ -4628,18 +4730,12 @@ Function Limit-ExDCJob
 	}
 	$RunningJobsOutput | Out-File ".\RunningJobs.txt" -Force
 
-	$intRunningJobs = $colJobsRunning.count
-
+	# Limit Jobs based on PSSessions instead of job counts
+	$intRunningJobs = Get-PsSessionCount -CurrentUser $CurrentUser -PsSession $PsSession -ResourceUri $ResourceUri
+	#$intRunningJobs = $colJobsRunning.count
 	if ($intRunningJobs -eq $null)
 	{
 		$intRunningJobs = "0"
-	}
-
-	$colJobsCompleted = @((Get-Job -State completed) | where-object {$null -ne $_.childjobs})
-	foreach ($objJobsCompleted in $colJobsCompleted)
-	{
-		Remove-Job -Id $objJobsCompleted.id
-		write-host "---- Finished job " $objJobsCompleted.name -ForegroundColor Green
 	}
 
 	do
@@ -4683,7 +4779,17 @@ Function Limit-ExDCJob
 			        Remove-Job -Id $objJobsFailed.id
 		        }
 	        }
-            $colJobsRunning = @((Get-Job -State Running) | where-object {$_.Module -ne "__DynamicModule*"})
+
+			# Remove Completed Jobs
+	        $colJobsCompleted = @((Get-Job -State completed) | where-object {$null -ne $_.childjobs})
+	        foreach ($objJobsCompleted in $colJobsCompleted)
+	        {
+		        Remove-Job -Id $objJobsCompleted.id
+		        write-host "---- Finished job " $objJobsCompleted.name -ForegroundColor Green
+			}
+
+			# Get Running Jobs
+			$colJobsRunning = @((Get-Job -State Running) | where-object {$_.Module -ne "__DynamicModule*"})
 	        if ((Test-Path ".\RunningJobs.txt") -eq $false)
 	        {
 		        new-item ".\RunningJobs.txt" -type file -Force
@@ -4733,16 +4839,13 @@ Function Limit-ExDCJob
 		        }
 	        }
 	        $RunningJobsOutput | Out-File ".\RunningJobs.txt" -Force
-	        $intRunningJobs = $colJobsRunning.count
+
+			# Limit Jobs based on PSSessions instead of job counts
+			$intRunningJobs = Get-PsSessionCount -CurrentUser $CurrentUser -PsSession $PsSession -ResourceUri $ResourceUri
+			#$intRunningJobs = $colJobsRunning.count
 	        if ($intRunningJobs -eq $null)
 	        {
 		        $intRunningJobs = "0"
-	        }
-	        $colJobsCompleted = @((Get-Job -State completed) | where-object {$null -ne $_.childjobs})
-	        foreach ($objJobsCompleted in $colJobsCompleted)
-	        {
-		        Remove-Job -Id $objJobsCompleted.id
-		        write-host "---- Finished job " $objJobsCompleted.name -ForegroundColor Green
 	        }
         if ($intRunningJobs -ge $JobThrottleMaxJobs)
         {
@@ -4761,6 +4864,7 @@ Function Update-ExDCJobCount
 	Param([int]$JobCountMaxJobs,`
 		[int]$JobCountPolling)
 
+	# This function really just checks for job completion before returning control to GUI
 	# Remove Failed Jobs
 	$colJobsFailed = @(Get-Job -State Failed)
 	foreach ($objJobsFailed in $colJobsFailed)
@@ -5427,22 +5531,44 @@ Function Start-ExDCJob
 {
     param(  [string]$server,`
             [string]$Job,`              # e.g. "Win32_ComputerSystem"
-            [boolean]$JobType,`             # 0=WMI, 1=ExOrg
+            [boolean]$JobType,`         # 0=WMI, 1=ExOrg
             [string]$Location,`
             [string]$JobScriptName,`    # e.g. "dc_w32_cs.ps1"
             [int]$i,`                   # Number or $null
             [string]$PSSession)
 
-    If ($JobType -eq 0) #WMI
-        {Limit-ExDCJob $intWMIJobs $intWMIPolling}
+	#Start-sleep 3
+	If ($JobType -eq 0) #WMI
+        {Limit-ExDCJob -JobThrottleMaxJobs $intWMIJobs -JobThrottlePolling $intWMIPolling -PsSession $null}
     else                #ExOrg
-        {Limit-ExDCJob $intExOrgJobs $intExOrgPolling}
+        {Limit-ExDCJob -JobThrottleMaxJobs $intExOrgJobs -JobThrottlePolling $intExOrgPolling -PsSession $PsSession}
     $strJobName = "$Job job for $server"
     write-host "-- Starting " $strJobName
     $PS_Loc = "$location\ExDC_Scripts\$JobScriptName"
     Start-Job -ScriptBlock {param($a,$b,$c,$d,$e) Powershell.exe -NoProfile -file $a $b $c $d $e} -ArgumentList @($PS_Loc,$location,$server,$i,$PSSession) -Name $strJobName
-    start-sleep 1 # Allow time for child job to spawn
+    start-sleep 5 # Allow time for child job to spawn
 }
+
+Function Get-PsSessionCount
+{
+	param(	[string]$CurrentUser,`
+			[string]$PsSession,`
+			[string]$ResourceUri`
+			)
+	# This is function is only called during Limit-ExDCCount to prevent new jobs from spawning prematurely 
+	Try
+	{
+		$CxnUri = "http://" + $PsSession + "/powershell"
+		$Sessions = (Get-WSManInstance -ConnectionURI $CxnUri shell -Enumerate) | where-object {($_.ResourceUri -eq $ResourceUri) -and ($_.owner -eq $CurrentUser)}
+		return $sessions.count
+	}
+	catch [system.Management.Automation.ParameterBindingException]
+	{
+		# Fall back to job count for WMI
+		Return $colJobsRunning.count
+	}
+}
+
 
 #endregion *** Custom Functions ***
 
@@ -5491,38 +5617,41 @@ else
 }
 
 # Check for the presence of the Exchange Snap-ins
-$Exchange2007Powershell = $false
-$Exchange2010Powershell = $false
-$RegisteredSnapins = Get-PSSnapin -Registered
-foreach ($Snapin in $RegisteredSnapins)
+if ($NoGUI -ne $true)
 {
-	if ($Snapin.name -like "Microsoft.Exchange.Management.PowerShell.Admin")
+	$Exchange2007Powershell = $false
+	$Exchange2010Powershell = $false
+	$RegisteredSnapins = Get-PSSnapin -Registered
+	foreach ($Snapin in $RegisteredSnapins)
 	{
-		$Exchange2007Powershell = $true
-		write-host "Exchange 2007 snap-in detected." -ForegroundColor Green
+		if ($Snapin.name -like "Microsoft.Exchange.Management.PowerShell.Admin")
+		{
+			$Exchange2007Powershell = $true
+			write-host "Exchange 2007 snap-in detected." -ForegroundColor Green
+		}
+		if ($Snapin.name -like "Microsoft.Exchange.Management.PowerShell.E2010")
+		{
+			$Exchange2010Powershell = $true
+			write-host "Exchange 2010 or later snap-in detected." -ForegroundColor Green
+		}
 	}
-	if ($Snapin.name -like "Microsoft.Exchange.Management.PowerShell.E2010")
+	#if (($Exchange2007Powershell -eq $true) -and ($Exchange2010Powershell -eq $true))
+	#{#
+	#	$Exchange_2007_2010_Mixed = $true
+	#}
+	if (($Exchange2007Powershell -eq $false) -and ($Exchange2010Powershell -eq $false))
 	{
-		$Exchange2010Powershell = $true
-		write-host "Exchange 2010 or later snap-in detected." -ForegroundColor Green
-	}
-}
-#if (($Exchange2007Powershell -eq $true) -and ($Exchange2010Powershell -eq $true))
-#{#
-#	$Exchange_2007_2010_Mixed = $true
-#}
-if (($Exchange2007Powershell -eq $false) -and ($Exchange2010Powershell -eq $false))
-{
-	write-host "No Exchange snap-ins detected.  Checking active PSSessions..." -ForegroundColor Green
-	If ($null -ne (get-pssession | where-object {$_.state -eq "opened" -and $_.ConfigurationName -eq "Microsoft.Exchange"}))
-	{
-		write-host "Open PSSession to Microsoft.Exchange detected." -foregroundcolor green
-		$Exchange2010Powershell = $true
-	}
-	else
-	{
-		write-host	"No open PSSession to Microsoft.Exchange detected.  Setting -NoEMS switch" -foregroundcolor yellow
-		$NoEMS = $true
+		write-host "No Exchange snap-ins detected.  Checking active PSSessions..." -ForegroundColor Green
+		If ($null -ne (get-pssession | where-object {$_.state -eq "opened" -and $_.ConfigurationName -eq "Microsoft.Exchange"}))
+		{
+			write-host "Open PSSession to Microsoft.Exchange detected." -foregroundcolor green
+			$Exchange2010Powershell = $true
+		}
+		else
+		{
+			write-host	"No open PSSession to Microsoft.Exchange detected.  Setting -NoEMS switch" -foregroundcolor yellow
+			$NoEMS = $true
+		}
 	}
 }
 
@@ -5576,6 +5705,9 @@ $Exchange2010 = $false
 $Exchange2013 = $false
 $Exchange2016 = $false
 $UM=$true
+$CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$resourceuri = "http://schemas.microsoft.com/powershell/Microsoft.Exchange"
+
 
 if ($JobCount_ExOrg -eq 0) 			{$intExOrgJobs = 10}
 	else 							{$intExOrgJobs = $JobCount_ExOrg}
@@ -5591,10 +5723,26 @@ if ($Timeout_WMI_Job -eq 0) 		{$intWMIJobTimeout = 600} 				# 600 sec = 10 min
 if ($Timeout_ExOrg_Job -eq 0)		{$intExchJobTimeout = 3600} 			# 3600 sec = 60 min
 	else 							{$intExchJobTimeout = $Timeout_ExOrg_Job}
 	#$intExchJobTimeoutMS = $intExchJobTimeout * 1000 						# convert sec to ms
+
+If (($NoGUI -eq $true) -and ($ServerforPSSession -ne $null))
+{
+	write-host "NoGUI is specified.  Setting up the Remote Powershell session to $ServerforPSSession"
+	$cxnUri = "http://" + $ServerforPSSession + "/powershell"
+	$session = New-PSSession -configurationName Microsoft.Exchange -ConnectionUri $cxnUri -authentication Kerberos
+	Import-PSSession -Session $session -AllowClobber
+    Set-AdServerSettings -ViewEntireForest $true
+
+}
+elseif (($NoGUI -eq $true) -and ($ServerforPSSession -eq $null))
+{
+	write-host "ServerForPSSession must be specified when using the -NoGUI switch" -foregroundcolor red
+	Exit
+}
+
 If ($NoEMS -eq $false)
 {
 	$EventText = ""
-	write-host "`tChecking Exchange versions..."
+	write-host "`tChecking Exchange versions..." -foregroundcolor cyan
 	foreach ($server in (Get-ExchangeServer))
 	{
 		#write-host "`tTesting $server..."
@@ -5609,21 +5757,19 @@ If ($NoEMS -eq $false)
 	        }
 		if ((($server.IsExchange2007OrLater -eq $true) `
 			-and ($server.IsE14OrLater -eq $true)) `
-			-and ($server.AdminDisplayVersion.major -eq 14))
+			-and ($server.AdminDisplayVersion.tostring() -match "Version 14"))
 			{
 	            $Exchange2010 = $true
 	            #write-host "`t$server is Ex2010" -ForegroundColor Green
 	        }
 		if (($server.IsE15OrLater -eq $true) `
-			-and ($server.AdminDisplayVersion.major -eq 15)`
-			-and ($server.AdminDisplayVersion.minor -eq 0))
-			{
+			-and ($server.AdminDisplayVersion.tostring() -match "Version 15.0"))
+		{
 	            $Exchange2013 = $true
 	            #write-host "`t$server is Ex2013" -ForegroundColor Green
 	        }
 		if (($server.IsE15OrLater -eq $true) `
-			-and ($server.AdminDisplayVersion.major -eq 15)`
-			-and ($server.AdminDisplayVersion.minor -eq 1))
+			-and ($server.AdminDisplayVersion.tostring() -match "Version 15.1"))
 			{
 	            $Exchange2016 = $true
 	            #write-host "`t$server is Ex2016" -ForegroundColor Green
@@ -5676,7 +5822,7 @@ If ($NoEMS -eq $false)
 	$EventLog.Source = "ExDC"
 	try{$EventLog.WriteEntry($EventText,"Information", 3)} catch{}
 }
-If (($NoEMS -eq $false) -and ($Exchange2010Powershell -eq $true))
+If ((($NoEMS -eq $false) -and ($Exchange2010Powershell -eq $true)) -or ($NoGUI -eq $true))
 {
 	if ($ServerForPSSession -ne "")	{$session_0 = $ServerForPSSession}
 	else
@@ -5775,6 +5921,28 @@ if ($NoEMS -eq $false)
 		}
 		write-host "`t`tServer:	`t" $session_0 -ForegroundColor Cyan
 		$EventText += "`t`tServer: " + $session_0
+		$InitialSessionCount = Get-PsSessionCount -CurrentUser $CurrentUser -PsSession $Session_0 -ResourceUri $ResourceUri
+		write-host "`tInitial PSSession count to server for this user: " $InitialSessionCount  -ForegroundColor Cyan
+
+		# Check User Throttle Policy
+		if ((get-throttlingpolicyassociation $currentuser).ThrottlingPolicyId -ne $null)
+		{
+			$PowershellMaxConcurrency = (Get-throttlingpolicy ((get-throttlingpolicyassociation $currentuser).ThrottlingPolicyId.Name)).PowerShellMaxConcurrency.value
+		}
+		else
+		{
+			$PowershellMaxConcurrency = (Get-ThrottlingPolicy | where-object {$_.isdefault -eq $true}).PowerShellMaxConcurrency.value
+			If ($PowershellMaxConcurrency -eq $null)
+			{
+				$PowershellMaxConcurrency = (Get-ThrottlingPolicy -identity "GlobalThrottlingPolicy*").PowerShellMaxConcurrency.value
+			}
+		}
+		write-host "`tPowershellMaxConcurrency for this user:`t " $PowershellMaxConcurrency  -ForegroundColor Cyan
+		if ($PowershellMaxConcurrency -le ($JobCount_ExOrg + $InitialSessionCount))
+		{
+			write-host "`tWarning!  Job Count likely to exceed PowershellMaxConcurrency!" -foregroundcolor red
+		}
+
 	}
 	$EventLog = New-Object System.Diagnostics.EventLog('Application')
 	$EventLog.MachineName = "."
@@ -5788,6 +5956,20 @@ else
 	$EventLog.MachineName = "."
 	$EventLog.Source = "ExDC"
 	try{$EventLog.WriteEntry("NoEMS switch used.","Information", 4)} catch{}
+}
+
+if ($NoGUI -eq $true)
+{
+	If ($ServerForPSSession -eq "")
+	{
+		Write-Host "NoGUI switch requires -ServerForPSSession to be set" -ForegroundColor Red
+		exit
+	}
+	If (($INI_Server -eq "") -and ($INI_Cluster -eq "") -and ($INI_ExOrg -eq ""))
+	{
+		Write-Host "NoGUI switch requires at least one INI switch to be set" -ForegroundColor Red
+		Exit
+	}
 }
 
 # Let's start the party
