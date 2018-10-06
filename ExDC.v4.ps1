@@ -4260,7 +4260,7 @@ Function Start-Execute()
 				{Start-ExDCJob -server $server -job "Get-MailboxPermission - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxPermission.ps1" -i $i -PSSession $session_0}
 			}
 			If ($chk_Org_Get_MailboxServer.checked -eq $true)
-				{Start-ExDCJob -server $server -job "Get-MailboxServer - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxSvr.ps1" -i $null -PSSession $session_0}
+				{Start-ExDCJob -server $server -job "Get-MailboxServer" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbxSvr.ps1" -i $null -PSSession $session_0}
 		    If ($chk_Org_Get_MailboxStatistics.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)

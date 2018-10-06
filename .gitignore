@@ -5,4 +5,4 @@ settings.json
 # Ignore any temp/working files
 *copy.ps1
 ExDC.v4 - Copy*.ps1
-/ExDC_Scripts/Core_Assemble_ExDoc_Word - Copy.ps1
+/ExDC_Scripts/* - Copy.ps1
