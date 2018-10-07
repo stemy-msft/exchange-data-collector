@@ -58,10 +58,10 @@
 	.\ExDC.v4.ps1 -Timeout_ExOrg_Job 7200
 	This results in ExDC killing ExOrg jobs that have exceeded 7200 seconds at the next polling interval.
 .EXAMPLE
-	.\ExDC.v4.ps1 -INI_Server ".\Templates\Template1_INI_Server.ini"
+	.\ExDC.v4.ps1 -INI_Server ".\Templates\Template_Recommended_INI_Server.ini"
 	This results in ExDC loading the specified template on start up.
 .EXAMPLE
-	.\ExDC.v4.ps1 -NoGUI -INI_Server ".\Templates\Template1_INI_Server.ini" -NoGUIOutputFolder "Output-Completed" -ServerForPSSession "Exchange2016.domain.com"
+	.\ExDC.v4.ps1 -NoGUI -INI_Server ".\Templates\Template_Recommended_INI_Server.ini" -NoGUIOutputFolder "Output-Completed" -ServerForPSSession "Exchange2016.domain.com"
 	This results in ExDC running against Exchange2016.domain.com without the GUI and executing the tests indicated in the INI file
 	When completed, ExDC will rename the output folder in the ExDC location to "Output-Completed"
 .INPUTS
@@ -894,13 +894,13 @@ $handler_rb_Step2_Template_1=
 	#Don't load cluster if tab isn't there
 	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template1_INI_cluster.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Recommended_INI_cluster.ini"} catch{}
 	}
 	if ($NoEMS -eq $false)
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template1_INI_ExOrg.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Recommended_INI_ExOrg.ini"} catch{}
 	}
-	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template1_INI_server.ini"} catch{}
+	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Recommended_INI_server.ini"} catch{}
 }
 
 $handler_rb_Step2_Template_2=
@@ -913,13 +913,13 @@ $handler_rb_Step2_Template_2=
 	#Don't load cluster if tab isn't there
 	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template2_INI_cluster.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_All_INI_cluster.ini"} catch{}
 	}
 	if ($NoEMS -eq $false)
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template2_INI_ExOrg.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_All_INI_ExOrg.ini"} catch{}
 	}
-	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template2_INI_server.ini"} catch{}
+	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_All_INI_server.ini"} catch{}
 }
 
 $handler_rb_Step2_Template_3=
@@ -938,13 +938,13 @@ $handler_rb_Step2_Template_3=
 	#Don't load cluster if tab isn't there
 	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template3_INI_cluster.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Minimum_INI_cluster.ini"} catch{}
 	}
 	if ($NoEMS -eq $false)
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template3_INI_ExOrg.ini"} catch {}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Minimum_INI_ExOrg.ini"} catch {}
 	}
-	& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template3_INI_server.ini"
+	& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Minimum_INI_server.ini"
 }
 
 $handler_rb_Step2_Template_4=
@@ -957,13 +957,13 @@ $handler_rb_Step2_Template_4=
 	#Don't load cluster if tab isn't there
 	if (($Exchange2007Powershell -eq $true) -or ($Exchange2003orEarlier -eq $true) -or ($NoEMS -eq $true) -or ($NoGUI -eq $true))
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template4_INI_cluster.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Custom1_INI_cluster.ini"} catch{}
 	}
 	if ($NoEMS -eq $false)
 	{
-		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template4_INI_ExOrg.ini"} catch{}
+		try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Custom1_INI_ExOrg.ini"} catch{}
 	}
-	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template4_INI_server.ini"} catch {}
+	try{& ".\ExDC_Scripts\Core_Parse_Ini_File.ps1" -IniFile ".\Templates\Template_Custom1_INI_server.ini"} catch {}
 }
 
 #Endregion "Step2" Events
