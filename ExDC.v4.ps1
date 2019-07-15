@@ -339,6 +339,7 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) 
 	$chk_Org_Get_MailboxStatistics = New-Object System.Windows.Forms.CheckBox
 	$chk_Org_Get_PublicFolder = New-Object System.Windows.Forms.CheckBox
 	$chk_Org_Get_PublicFolderStatistics = New-Object System.Windows.Forms.CheckBox
+    $chk_Org_Get_User = New-Object System.Windows.Forms.CheckBox
 	$chk_Org_Quota = New-Object System.Windows.Forms.CheckBox
 }
 #endregion Step3 Recipient Tab
@@ -3141,6 +3142,18 @@ if (($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true) 
 	$chk_Org_Get_PublicFolderStatistics.Text = "Get-PublicFolderStatistics"
 	$chk_Org_Get_PublicFolderStatistics.UseVisualStyleBackColor = $True
 	$bx_Recipient_Functions.Controls.Add($chk_Org_Get_PublicFolderStatistics)
+	$chk_Org_Get_User.Font = $font_Calibri_10pt_normal
+		$System_Drawing_Point = New-Object System.Drawing.Point
+		$System_Drawing_Point.X = $Col_1_loc
+		$System_Drawing_Point.Y = $Row_1_loc
+		$Row_1_loc += 25
+	$chk_Org_Get_User.Location = $System_Drawing_Point
+	$chk_Org_Get_User.Name = "$chk_Org_Get_User"
+	$chk_Org_Get_User.Size = $System_Drawing_Size_Reusable_chk
+	$chk_Org_Get_User.TabIndex = 16
+	$chk_Org_Get_User.Text = "Get-User"
+	$chk_Org_Get_User.UseVisualStyleBackColor = $True
+	$bx_Recipient_Functions.Controls.Add($chk_Org_Get_User)
 	$chk_Org_Quota.Font = $font_Calibri_10pt_normal
 		$System_Drawing_Point = New-Object System.Drawing.Point
 		$System_Drawing_Point.X = $Col_1_loc
@@ -4249,6 +4262,11 @@ Function Start-Execute()
 				For ($i = 1;$i -lt 11;$i++)
 				{Start-ExDCJob -server $server -job "Get-Mailbox - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetMbx.ps1" -i $i -PSSession $session_0}
 			}
+            If ($chk_Org_Get_User.checked -eq $true)
+			{
+				For ($i = 1;$i -lt 11;$i++)
+				{Start-ExDCJob -server $server -job "Get-User - Set $i" -JobType 1 -Location $location -JobScriptName "ExOrg_GetUser.ps1" -i $i -PSSession $session_0}
+			}
 			If ($chk_Org_Get_MailboxFolderStatistics.checked -eq $true)
 			{
 				For ($i = 1;$i -lt 11;$i++)
@@ -5071,6 +5089,7 @@ if (($chk_Org_Get_AcceptedDomain.checked -eq $true) -or
 	#($chk_Org_Get_UmMailboxPin.checked -eq $true) -or
 	($chk_Org_Get_UmMailboxPolicy.checked -eq $true) -or
 	($chk_Org_Get_UmServer.checked -eq $true) -or
+	($chk_Org_Get_User.checked -eq $true) -or
 	($chk_Org_Get_WebServicesVirtualDirectory.checked -eq $true) -or
 	($chk_Org_Quota.checked -eq $true) -or
 	($chk_Org_Get_Fsmo.checked -eq $true) -or
@@ -5092,6 +5111,7 @@ if (($chk_Org_Get_AdPermission.checked -eq $true) -or
 	($chk_Org_Get_UmMailbox.checked -eq $true) -or
 	#($chk_Org_Get_UmMailboxConfiguration.checked -eq $true) -or
 	#($chk_Org_Get_UmMailboxPin.checked -eq $true) -or
+	($chk_Org_Get_User.checked -eq $true) -or
 	($chk_Org_Quota.checked -eq $true))
 	{
 		$true
@@ -5487,6 +5507,7 @@ Function Set-AllFunctionsRecipient
 	$chk_Org_Get_MailboxStatistics.Checked = $Check
 	$chk_Org_Get_PublicFolder.Checked = $Check
 	$chk_Org_Get_PublicFolderStatistics.Checked = $Check
+	$chk_Org_Get_User.Checked = $Check
 	$chk_Org_Quota.Checked = $Check
 }
 
