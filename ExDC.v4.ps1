@@ -3348,7 +3348,7 @@ if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)
 		$System_Drawing_Point.X = 4
 		$System_Drawing_Point.Y = 33
 	$tab_Step3_UM.Location = $System_Drawing_Point
-	$tab_Step3_UM.Name = "tab_Step3_Misc"
+	$tab_Step3_UM.Name = "tab_Step3_UM"
 	$tab_Step3_UM.Padding = $System_Windows_Forms_Padding_Reusable
 		$System_Drawing_Size = New-Object System.Drawing.Size
 		$System_Drawing_Size.Height = 488
@@ -3364,14 +3364,14 @@ if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)
 		$System_Drawing_Point.X = 3
 		$System_Drawing_Point.Y = 3
 	$bx_UM_Functions.Location = $System_Drawing_Point
-	$bx_UM_Functions.Name = "bx_Misc_Functions"
+	$bx_UM_Functions.Name = "bx_UM_Functions"
 	$bx_UM_Functions.Size = $System_Drawing_Size_Step3_box
 	$bx_UM_Functions.TabIndex = 9
 	$bx_UM_Functions.TabStop = $False
 	$tab_Step3_UM.Controls.Add($bx_UM_Functions)
 	$btn_Step3_UM_CheckAll.Font = $font_Calibri_10pt_normal
 	$btn_Step3_UM_CheckAll.Location = $System_Drawing_Point_Step3_Check
-	$btn_Step3_UM_CheckAll.Name = "btn_Step3_Misc_CheckAll"
+	$btn_Step3_UM_CheckAll.Name = "btn_Step3_UM_CheckAll"
 	$btn_Step3_UM_CheckAll.Size = $System_Drawing_Size_Step3_check_btn
 	$btn_Step3_UM_CheckAll.TabIndex = 28
 	$btn_Step3_UM_CheckAll.Text = "Check all on this tab"
@@ -3380,7 +3380,7 @@ if ((($Exchange2007Powershell -eq $true) -or ($Exchange2010Powershell -eq $true)
 	$bx_UM_Functions.Controls.Add($btn_Step3_UM_CheckAll)
 	$btn_Step3_UM_UncheckAll.Font = $font_Calibri_10pt_normal
 	$btn_Step3_UM_UncheckAll.Location = $System_Drawing_Point_Step3_Uncheck
-	$btn_Step3_UM_UncheckAll.Name = "btn_Step3_Misc_UncheckAll"
+	$btn_Step3_UM_UncheckAll.Name = "btn_Step3_UM_UncheckAll"
 	$btn_Step3_UM_UncheckAll.Size = $System_Drawing_Size_Step3_check_btn
 	$btn_Step3_UM_UncheckAll.TabIndex = 29
 	$btn_Step3_UM_UncheckAll.Text = "Uncheck all on this tab"
